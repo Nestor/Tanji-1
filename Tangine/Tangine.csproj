@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F3199201-061D-4DF2-A00E-61BA3B754E3E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Tangine</RootNamespace>
+    <AssemblyName>Tangine</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
+    <UpdateAssemblyFileVersion>False</UpdateAssemblyFileVersion>
+    <UpdateAssemblyInfoVersion>False</UpdateAssemblyInfoVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Tangine.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Crypto\HKeyExchange.cs" />
+    <Compile Include="Crypto\PKCSPadding.cs" />
+    <Compile Include="Crypto\RSAKeys.cs" />
+    <Compile Include="Modules\Attributes\AuthorAttribute.cs" />
+    <Compile Include="Modules\Attributes\DataCaptureAttribute.cs" />
+    <Compile Include="Modules\Attributes\ModuleAttribute.cs" />
+    <Compile Include="Habbo\Enums\HAction.cs" />
+    <Compile Include="Habbo\Enums\HBan.cs" />
+    <Compile Include="Habbo\Enums\HDance.cs" />
+    <Compile Include="Habbo\Enums\HDirection.cs" />
+    <Compile Include="Habbo\HGameData.cs" />
+    <Compile Include="Habbo\Enums\HGender.cs" />
+    <Compile Include="Habbo\Enums\HGesture.cs" />
+    <Compile Include="Habbo\Enums\HHotel.cs" />
+    <Compile Include="Habbo\Enums\HModel.cs" />
+    <Compile Include="Habbo\Enums\HSign.cs" />
+    <Compile Include="Habbo\Enums\HSpeech.cs" />
+    <Compile Include="Habbo\Enums\HStance.cs" />
+    <Compile Include="Habbo\Enums\HTheme.cs" />
+    <Compile Include="Habbo\HGame.cs" />
+    <Compile Include="Modules\ExtensionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\IInstaller.cs" />
+    <Compile Include="Modules\IModule.cs" />
+    <Compile Include="Modules\TService.cs" />
+    <Compile Include="Network\Event Args\DataInterceptedEventArgs.cs" />
+    <Compile Include="Network\HNode.cs" />
+    <Compile Include="Network\HotelEndPoint.cs" />
+    <Compile Include="Network\IHConnection.cs" />
+    <Compile Include="Network\Protocol\HAncient.cs" />
+    <Compile Include="Network\Protocol\Encodings\WedgieEncoding.cs" />
+    <Compile Include="Crypto\RC4.cs" />
+    <Compile Include="Network\Protocol\HPacket.cs" />
+    <Compile Include="Network\Protocol\IHabboData.cs" />
+    <Compile Include="Network\Protocol\HModern.cs" />
+    <Compile Include="Network\Protocol\Encodings\BigEndianEncoding.cs" />
+    <Compile Include="Network\Protocol\Encodings\HEncoding.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

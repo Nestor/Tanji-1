@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="Tanji.Services.Modules.ModulesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Tanji.Services.Modules"
+             mc:Ignorable="d">
+    <UserControl.DataContext>
+        <local:ModulesViewModel/>
+    </UserControl.DataContext>
+    <Grid Width="478" Height="318">
+        <ListView SelectedItem="{Binding SelectedModule}" ItemsSource="{Binding Modules}" BorderThickness="0" Margin="0,0,0,25"/>
+        <Button Width="100" Height="20" Margin="273,298,105,0" Content ="Uninstall" Command="{Binding UninstallCommand}"/>
+        <Button Width="100" Height="20" Margin="378,298,0,0" Content ="Install" Command="{Binding InstallCommand}"/>
+    </Grid>
+</UserControl>
