@@ -105,7 +105,6 @@ namespace Tangine.Habbo
             {
                 RenameRegisters();
             }
-
         }
         #region Method Body Sanitization
         protected void Deobfuscate()
@@ -569,6 +568,22 @@ namespace Tangine.Habbo
         }
         #endregion
 
+        public bool TestABCWriter()
+        {
+            foreach (ABCFile abc in ABCFiles)
+            {
+                foreach (ASMethodBody body in abc.MethodBodies)
+                {
+                    byte[] oldC = body.Code;
+                    byte[] newC = body.ParseCode().ToArray();
+                    if (!Enumerable.SequenceEqual(oldC, newC))
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
         public bool InjectRawCamera()
         {
             // TODO: Try to split this up.
@@ -598,7 +613,7 @@ namespace Tangine.Habbo
             assignDataBody.InitialScopeDepth = 4;
             assignDataBody.Code = new byte[0];
             assignDataBody.MaxScopeDepth = 5;
-            assignDataBody.LocalCount = 2;
+            assignDataBody.LocalCount = 3;
             assignDataBody.MaxStack = 4;
             abc.AddMethodBody(assignDataBody);
 
@@ -609,11 +624,14 @@ namespace Tangine.Habbo
                 new GetLocal0Ins(),
                 new PushScopeIns(),
 
-                // this.valuesArray = PNGEncoder.encode(param1);
-                new GetLocal0Ins(),
                 new GetLexIns(abc, abc.Pool.GetMultinameIndex("PNGEncoder")),
                 new GetLocal1Ins(),
                 new CallPropertyIns(abc, abc.Pool.GetMultinameIndex("encode"), 1),
+                new CoerceIns(abc, abc.Pool.GetMultinameIndex("ByteArray")),
+                new SetLocal2Ins(),
+
+                new GetLocal0Ins(),
+                new GetLocal2Ins(),
                 new NewArrayIns(1),
                 new InitPropertyIns(abc, valuesArraySlot.QNameIndex),
 
@@ -678,7 +696,7 @@ namespace Tangine.Habbo
                 if (instruction.OP != OPCode.ConstructProp) continue;
 
                 var constructProp = (ConstructPropIns)instruction;
-                if (constructProp.PropertyName.Name != "PhotoPurchaseConfirmationDialog") continue;
+                if (constructProp.ArgCount != 2) continue;
 
                 var getProperty = (bigPurchaseCode[i + 4] as GetPropertyIns);
                 if (getProperty == null) return false;
@@ -1216,8 +1234,7 @@ namespace Tangine.Habbo
             ASTrait infoHostSlot = habboCommMngrInstance.GetSlotTraits("String").FirstOrDefault();
             if (infoHostSlot == null) return false;
 
-            ASMethod initComponentMethod =
-                habboCommMngrInstance.GetMethod(0, "initComponent", "void");
+            ASMethod initComponentMethod = habboCommMngrInstance.GetMethod(0, "initComponent", "void");
             if (initComponentMethod == null) return false;
 
             string connectMethodName = string.Empty;
