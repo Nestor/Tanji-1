@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows;
 using System.Threading;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Windows.Forms.Integration;
 
@@ -12,7 +13,6 @@ using Tanji.Controls;
 using Tangine.Habbo;
 using Tangine.Network;
 using Tangine.Network.Protocol;
-using System.ComponentModel;
 
 namespace Tanji.Windows.Logger
 {
