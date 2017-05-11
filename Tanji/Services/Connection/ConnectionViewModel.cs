@@ -123,8 +123,8 @@ namespace Tanji.Services.Connection
             BrowseCommand = new Command(Browse);
             CancelCommand = new Command(Cancel);
             ConnectCommand = new Command(Connect);
-            ExportCertificateAuthorityCommand = new Command(ExportCertificateAuthority);
             DestroyCertificatesCommand = new Command(DestroyCertificates);
+            ExportCertificateAuthorityCommand = new Command(ExportCertificateAuthority);
         }
 
         private void InjectGameClient(object sender, RequestInterceptedEventArgs e)
