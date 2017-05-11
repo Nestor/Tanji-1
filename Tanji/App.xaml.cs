@@ -94,6 +94,16 @@ namespace Tanji
             }
         }
 
+        public static void Display(Exception exception, string header = null)
+        {
+            string messsage = header;
+            if (!string.IsNullOrWhiteSpace(messsage))
+            {
+                messsage += "\r\n\r\nException: ";
+            }
+            MessageBox.Show((messsage + exception), "Tanji - Error!", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             Master = this;
