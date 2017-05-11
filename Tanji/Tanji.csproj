@@ -114,6 +114,7 @@
     </Compile>
     <Compile Include="Services\Injection\Scheduler\SchedulerViewModel.cs" />
     <Compile Include="Services\IReceiver.cs" />
+    <Compile Include="Services\ISynchronizer.cs" />
     <Compile Include="Services\Modules\Models\ModuleInfo.cs" />
     <Compile Include="Services\Modules\ModulesView.xaml.cs">
       <DependentUpon>ModulesView.xaml</DependentUpon>

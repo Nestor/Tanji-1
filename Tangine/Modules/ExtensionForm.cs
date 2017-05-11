@@ -32,24 +32,24 @@ namespace Tangine.Modules
         { }
         public ExtensionForm(TService service)
         {
-            _service = (service ?? new TService(this));
+            _service = (service ?? new ExtensionService(this));
             _service.Installer = _installer;
         }
 
-        void IModule.ModifyGame(HGame game)
+        void IModule.Synchronize(HGame game)
         {
-            ModifyGame(game);
-            _service.ModifyGame(game);
+            Synchronize(game);
+            _service.Synchronize(game);
         }
-        public virtual void ModifyGame(HGame game)
+        public virtual void Synchronize(HGame game)
         { }
 
-        void IModule.ModifyGameData(HGameData gameData)
+        void IModule.Synchronize(HGameData gameData)
         {
-            ModifyGameData(gameData);
-            _service.ModifyGameData(gameData);
+            Synchronize(gameData);
+            _service.Synchronize(gameData);
         }
-        public virtual void ModifyGameData(HGameData gameData)
+        public virtual void Synchronize(HGameData gameData)
         { }
 
         void IModule.HandleOutgoing(DataInterceptedEventArgs e)
@@ -67,5 +67,12 @@ namespace Tangine.Modules
         }
         public virtual void HandleIncoming(DataInterceptedEventArgs e)
         { }
+
+        private sealed class ExtensionService : TService
+        {
+            public ExtensionService(object container)
+                : base(container)
+            { }
+        }
     }
 }

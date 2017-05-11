@@ -1,16 +1,19 @@
 ﻿using System;
+using System.Reflection;
 
 namespace Tangine.Modules
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class DataCaptureAttribute : Attribute
+    public abstract class DataCaptureAttribute : Attribute
     {
+        public ushort Id { get; }
         public string Hash { get; }
 
-        public ushort Id { get; }
         public bool IsOutgoing { get; }
 
-        public DataCaptureAttribute(string hash)
+        internal MethodInfo Method { get; set; }
+
+        public DataCaptureAttribute(string hash, bool isOutgoing)
         {
             Hash = hash;
         }

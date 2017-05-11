@@ -12,12 +12,13 @@ using System.Collections.ObjectModel;
 using Tanji.Helpers;
 using Tanji.Services.Modules.Models;
 
+using Tangine.Habbo;
 using Tangine.Modules;
 using Tangine.Network;
 
 namespace Tanji.Services.Modules
 {
-    public class ModulesViewModel : ObservableObject, IReceiver, IHaltable
+    public class ModulesViewModel : ObservableObject, ISynchronizer, IReceiver, IHaltable
     {
         private ModuleInfo[] _safeModules;
 
@@ -284,11 +285,21 @@ namespace Tanji.Services.Modules
             _safeModules = Modules.ToArray();
         }
 
-        #region IHaltable Implementation
-        public void Halt()
-        { }
-        public void Restore()
-        { }
+        #region ISynchronizer Implementation
+        public void Synchronize(HGame game)
+        {
+            foreach (ModuleInfo module in GetInitializedModules())
+            {
+                module.Instance.Synchronize(game);
+            }
+        }
+        public void Synchronize(HGameData gameData)
+        {
+            foreach (ModuleInfo module in GetInitializedModules())
+            {
+                module.Instance.Synchronize(gameData);
+            }
+        }
         #endregion
         #region IReceiver Implementation
         public bool IsReceiving { get; private set; }
@@ -324,6 +335,12 @@ namespace Tanji.Services.Modules
                 }
             }
         }
+        #endregion
+        #region IHaltable Implementation
+        public void Halt()
+        { }
+        public void Restore()
+        { }
         #endregion
     }
 }

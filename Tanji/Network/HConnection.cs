@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Tangine.Habbo;
 using Tangine.Network;
 using Tangine.Network.Protocol;
 
@@ -50,6 +51,7 @@ namespace Tanji.Network
             DataIncoming?.Invoke(this, e);
         }
 
+        public HGame GameContext { get; set; }
         public int SocketSkip { get; set; } = 2;
         public bool IsConnected { get; private set; }
 
@@ -176,6 +178,12 @@ namespace Tanji.Network
                 var args = new DataInterceptedEventArgs(packet, ++_outSteps,
                     true, InterceptOutgoingAsync, SendToServerAsync);
 
+                if (GameContext != null &&
+                    GameContext.OutMessages.TryGetValue(packet.Id, out MessageItem message))
+                {
+                    args.Message = message;
+                }
+
                 try { OnDataOutgoing(args); }
                 catch { args.Restore(); }
 
@@ -196,8 +204,14 @@ namespace Tanji.Network
             HPacket packet = await Remote.ReceivePacketAsync().ConfigureAwait(false);
             if (packet != null)
             {
-                var args = new DataInterceptedEventArgs(packet,
-                    ++_inSteps, false, InterceptIncomingAsync, SendToClientAsync);
+                var args = new DataInterceptedEventArgs(packet, ++_inSteps,
+                    false, InterceptIncomingAsync, SendToClientAsync);
+
+                if (GameContext != null &&
+                    GameContext.InMessages.TryGetValue(packet.Id, out MessageItem message))
+                {
+                    args.Message = message;
+                }
 
                 try { OnDataIncoming(args); }
                 catch { args.Restore(); }

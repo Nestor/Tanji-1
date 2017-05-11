@@ -52,6 +52,7 @@
     <Compile Include="Crypto\PKCSPadding.cs" />
     <Compile Include="Modules\Attributes\AuthorAttribute.cs" />
     <Compile Include="Modules\Attributes\DataCaptureAttribute.cs" />
+    <Compile Include="Modules\Attributes\InCaptureAttribute.cs" />
     <Compile Include="Modules\Attributes\ModuleAttribute.cs" />
     <Compile Include="Habbo\Enums\HAction.cs" />
     <Compile Include="Habbo\Enums\HBan.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Habbo\Enums\HStance.cs" />
     <Compile Include="Habbo\Enums\HTheme.cs" />
     <Compile Include="Habbo\HGame.cs" />
+    <Compile Include="Modules\Attributes\OutDataCaptureAttribute.cs" />
     <Compile Include="Modules\ExtensionForm.cs">
       <SubType>Form</SubType>
     </Compile>

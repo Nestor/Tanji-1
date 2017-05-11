@@ -17,13 +17,29 @@ namespace Tanji
     public partial class App : Application, IMaster
     {
         private readonly List<IHaltable> _haltables;
+        private readonly List<ISynchronizer> _synchronizers;
         private readonly SortedList<int, IReceiver> _receivers;
 
-        HGame IInstaller.Game => Game;
-        public HGame Game { get; set; }
+        private HGame _hGame;
+        HGame IInstaller.Game
+        {
+            get { return _hGame; }
+        }
+        public HGame Game
+        {
+            get { return _hGame; }
+            set
+            {
+                _hGame = value;
+                Connection.GameContext = value;
+            }
+        }
 
+        IHConnection IInstaller.Connection
+        {
+            get { return Connection; }
+        }
         public HConnection Connection { get; }
-        IHConnection IInstaller.Connection => Connection;
 
         public HGameData GameData { get; set; }
 
@@ -32,6 +48,7 @@ namespace Tanji
         public App()
         {
             _haltables = new List<IHaltable>();
+            _synchronizers = new List<ISynchronizer>();
             _receivers = new SortedList<int, IReceiver>();
 
             GameData = new HGameData();
@@ -61,6 +78,25 @@ namespace Tanji
                 throw new ArgumentException("Unrecognized receiver object.", nameof(receiver));
             }
             _receivers.Add(rank, receiver);
+        }
+        public void AddSynchronizer(ISynchronizer synchronizer)
+        {
+            _synchronizers.Add(synchronizer);
+        }
+
+        public void Synchronize(HGame game)
+        {
+            foreach (ISynchronizer synchronizer in _synchronizers)
+            {
+                synchronizer.Synchronize(game);
+            }
+        }
+        public void Synchronize(HGameData gameData)
+        {
+            foreach (ISynchronizer synchronizer in _synchronizers)
+            {
+                synchronizer.Synchronize(gameData);
+            }
         }
 
         private void Connected(object sender, EventArgs e)
@@ -94,6 +130,12 @@ namespace Tanji
             }
         }
 
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            Master = this;
+            base.OnStartup(e);
+        }
+
         public static void Display(Exception exception, string header = null)
         {
             string messsage = header;
@@ -102,12 +144,6 @@ namespace Tanji
                 messsage += "\r\n\r\nException: ";
             }
             MessageBox.Show((messsage + exception), "Tanji - Error!", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        protected override void OnStartup(StartupEventArgs e)
-        {
-            Master = this;
-            base.OnStartup(e);
         }
     }
 }

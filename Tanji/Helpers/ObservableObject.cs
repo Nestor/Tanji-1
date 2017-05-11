@@ -25,6 +25,11 @@ namespace Tanji.Helpers
                 {
                     App.Master.AddReceiver(receiver);
                 }
+                var synchronizer = (this as ISynchronizer);
+                if (synchronizer != null)
+                {
+                    App.Master.AddSynchronizer(synchronizer);
+                }
             }
         }
 

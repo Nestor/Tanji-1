@@ -12,5 +12,9 @@ namespace Tanji.Services
 
         void AddReceiver(IReceiver receiver);
         void AddHaltable(IHaltable haltable);
+        void AddSynchronizer(ISynchronizer synchronizer);
+
+        void Synchronize(HGame game);
+        void Synchronize(HGameData gameData);
     }
 }

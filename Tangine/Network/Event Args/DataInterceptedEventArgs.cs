@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-
+using Tangine.Habbo;
 using Tangine.Network.Protocol;
 
 namespace Tangine.Network
@@ -19,6 +19,7 @@ namespace Tangine.Network
         public int Step { get; }
         public bool IsOutgoing { get; }
         public DateTime Timestamp { get; }
+        public MessageItem Message { get; set; }
 
         public bool IsOriginal
         {

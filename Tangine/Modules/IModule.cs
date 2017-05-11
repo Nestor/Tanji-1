@@ -9,8 +9,8 @@ namespace Tangine.Modules
     {
         IInstaller Installer { get; set; }
 
-        void ModifyGame(HGame game);
-        void ModifyGameData(HGameData gameData);
+        void Synchronize(HGame game);
+        void Synchronize(HGameData gameData);
 
         void HandleOutgoing(DataInterceptedEventArgs e);
         void HandleIncoming(DataInterceptedEventArgs e);

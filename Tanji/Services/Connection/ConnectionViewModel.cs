@@ -35,6 +35,9 @@ namespace Tanji.Services.Connection
 
         private const string ASSEMBLING_CLIENT = "Assembling Client...";
         private const string DISASSEMBLING_CLIENT = "Disassembling Client...";
+
+        private const string SYNCHRONIZING_GAME = "Synchronizing Game...";
+        private const string SYNCHRONIZING_GAME_DATA = "Synchronizing Game Data...";
         #endregion
 
         private readonly OpenFileDialog _openClientDialog;
@@ -153,6 +156,9 @@ namespace Tanji.Services.Connection
                     Status = GENERATING_MESSAGE_HASHES;
                     App.Master.Game.GenerateMessageHashes();
 
+                    Status = SYNCHRONIZING_GAME;
+                    App.Master.Synchronize(App.Master.Game);
+
                     TerminateProxy();
                     InterceptConnection();
                     e.Request = WebRequest.Create(new Uri(clientPath));
@@ -188,6 +194,9 @@ namespace Tanji.Services.Connection
             {
                 App.Master.Game.InjectEndPoint("127.0.0.1", HotelServer.Port);
             }
+
+            Status = SYNCHRONIZING_GAME;
+            App.Master.Synchronize(App.Master.Game);
 
             CompressionKind compression = CompressionKind.ZLIB;
 #if DEBUG
@@ -227,6 +236,10 @@ namespace Tanji.Services.Connection
 
             body = body.Replace(App.Master.GameData.InfoHost, "127.0.0.1");
             body = body.Replace(".swf", $".swf?{DateTime.Now.Ticks}-Tanji");
+
+            Status = SYNCHRONIZING_GAME_DATA;
+            App.Master.Synchronize(App.Master.GameData);
+
             e.Payload = Encoding.UTF8.GetBytes(body);
 
             Status = INJECTING_CLIENT;
