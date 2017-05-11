@@ -50,7 +50,6 @@
   <ItemGroup>
     <Compile Include="Crypto\HKeyExchange.cs" />
     <Compile Include="Crypto\PKCSPadding.cs" />
-    <Compile Include="Crypto\RSAKeys.cs" />
     <Compile Include="Modules\Attributes\AuthorAttribute.cs" />
     <Compile Include="Modules\Attributes\DataCaptureAttribute.cs" />
     <Compile Include="Modules\Attributes\ModuleAttribute.cs" />
