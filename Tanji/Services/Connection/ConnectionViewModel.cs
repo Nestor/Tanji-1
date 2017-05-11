@@ -192,7 +192,6 @@ namespace Tanji.Services.Connection
             CompressionKind compression = CompressionKind.ZLIB;
 #if DEBUG
             compression = CompressionKind.None;
-            App.Master.Game.InjectDebugLogger("console.log");
 #endif
 
             Status = ASSEMBLING_CLIENT;
