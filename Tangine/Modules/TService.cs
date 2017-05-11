@@ -10,6 +10,8 @@ namespace Tangine.Modules
     {
         private readonly Type _containerType;
 
+        public const int REMOTE_MODULE_PORT = 8055;
+
         public IInstaller Installer { get; set; }
 
         public TService()
