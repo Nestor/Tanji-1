@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+VisualStudioVersion = 15.0.26430.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tangine", "Tangine\Tangine.csproj", "{F3199201-061D-4DF2-A00E-61BA3B754E3E}"
 EndProject
@@ -10,6 +10,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eavesdrop", "Submodules\Eavesdrop\Eavesdrop\Eavesdrop.csproj", "{CED1943A-E9B4-46B6-A887-54BCB0DD406B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flazzy", "Submodules\Flazzy\Flazzy\Flazzy.csproj", "{84D3802E-16AA-4DD1-906C-3D4AEE5FF8C6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Module Examples", "Module Examples", "{C5529BA5-03C3-4787-AA9D-FB06192A3B40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tanji.ExtensionExample", "Module Examples\Tanji.ExtensionExample\Tanji.ExtensionExample.csproj", "{AF54F3C2-7F06-4F8F-A3A2-731E444D130B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tanji.ServiceExample", "Module Examples\Tanji.ServiceExample\Tanji.ServiceExample.csproj", "{7129022C-097E-4AB4-B8C9-553EA83D2806}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,8 +39,20 @@ Global
 		{84D3802E-16AA-4DD1-906C-3D4AEE5FF8C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84D3802E-16AA-4DD1-906C-3D4AEE5FF8C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84D3802E-16AA-4DD1-906C-3D4AEE5FF8C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF54F3C2-7F06-4F8F-A3A2-731E444D130B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF54F3C2-7F06-4F8F-A3A2-731E444D130B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF54F3C2-7F06-4F8F-A3A2-731E444D130B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF54F3C2-7F06-4F8F-A3A2-731E444D130B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7129022C-097E-4AB4-B8C9-553EA83D2806}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7129022C-097E-4AB4-B8C9-553EA83D2806}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7129022C-097E-4AB4-B8C9-553EA83D2806}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7129022C-097E-4AB4-B8C9-553EA83D2806}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AF54F3C2-7F06-4F8F-A3A2-731E444D130B} = {C5529BA5-03C3-4787-AA9D-FB06192A3B40}
+		{7129022C-097E-4AB4-B8C9-553EA83D2806} = {C5529BA5-03C3-4787-AA9D-FB06192A3B40}
 	EndGlobalSection
 EndGlobal
