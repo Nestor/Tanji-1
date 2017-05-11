@@ -45,6 +45,8 @@ namespace Tanji.Services.Modules
             }
         }
 
+        public int RemoteModulePort { get; } = TService.REMOTE_MODULE_PORT;
+
         static ModulesViewModel()
         {
             _iModuleType = typeof(IModule);
@@ -177,7 +179,10 @@ namespace Tanji.Services.Modules
                 if (extension == ".exe" || extension == ".dll")
                 {
                     try { Install(fileSysInfo.FullName); }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        App.Display(ex, "Failed to install the assembly as a module.\r\nFile: " + fileSysInfo.Name);
+                    }
                 }
             }
         }
