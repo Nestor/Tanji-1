@@ -31,7 +31,8 @@
                           Command="{Binding IgnoreCommand}"/>
                 <Separator/>
                 <MenuItem Header="Empty Log"
-                          InputGestureText="Alt+E"/>
+                          InputGestureText="Alt+E"
+                          Command="{Binding EmptyLogCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Display Filters">
@@ -81,6 +82,9 @@
             <Separator/>
             <StatusBarItem Content="{Binding IsViewingIncoming}"
                            ContentStringFormat="View Incoming: {0}"/>
+            <Separator/>
+            <StatusBarItem Content="{Binding Revision, Mode=OneTime}"
+                           ContentStringFormat="Revision: {0}"/>
         </StatusBar>
         <ContentPresenter Content="{Binding PacketLoggerHost}"/>
     </DockPanel>

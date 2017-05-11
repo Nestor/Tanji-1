@@ -193,6 +193,11 @@ namespace Tanji.Windows.Logger
             }
         }
 
+        public string Revision
+        {
+            get { return (App.Master?.Game?.Revision ?? "?"); }
+        }
+
         public Command FindCommand { get; }
         public Command IgnoreCommand { get; }
         public Command EmptyLogCommand { get; }
