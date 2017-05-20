@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Tangine.Habbo;
 using Tangine.Network.Protocol;
 
@@ -14,12 +15,13 @@ namespace Tangine.Network
         private readonly string _ogString;
         private readonly object _continueLock;
         private readonly Func<Task> _continuation;
+        private readonly DataInterceptedEventArgs _args;
         private readonly Func<HPacket, Task<int>> _transmitter;
 
         public int Step { get; }
         public bool IsOutgoing { get; }
         public DateTime Timestamp { get; }
-        public MessageItem Message { get; set; }
+        public MessageItem MessageType { get; set; }
 
         public bool IsOriginal
         {
@@ -29,17 +31,77 @@ namespace Tangine.Network
         {
             get { return (_continuation != null && !HasContinued); }
         }
-        public bool IsBlocked { get; set; }
-        public HPacket Packet { get; set; }
 
-        public bool WasRelayed { get; private set; }
-        public bool HasContinued { get; private set; }
+        private bool _isBlocked;
+        public bool IsBlocked
+        {
+            get { return (_args?.IsBlocked ?? _isBlocked); }
+            set
+            {
+                if (_args != null)
+                {
+                    _args.IsBlocked = value;
+                }
+                _isBlocked = value;
+            }
+        }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataInterceptedEventArgs"/> class.
-        /// </summary>
-        /// <param name="packet">The intercepted message.</param>
-        /// <param name="step">The current count/step/order of the intercepted message.</param>
+        private HPacket _packet;
+        public HPacket Packet
+        {
+            get { return (_args?.Packet ?? _packet); }
+            set
+            {
+                if (_args != null)
+                {
+                    _args.Packet = value;
+                }
+                _packet = value;
+            }
+        }
+
+        private bool _wasRelayed;
+        public bool WasRelayed
+        {
+            get { return (_args?.WasRelayed ?? _wasRelayed); }
+            private set
+            {
+                if (_args != null)
+                {
+                    _args.WasRelayed = value;
+                }
+                _wasRelayed = value;
+            }
+        }
+
+        private bool _hasContinued;
+        public bool HasContinued
+        {
+            get { return (_args?.HasContinued ?? _hasContinued); }
+            private set
+            {
+                if (_args != null)
+                {
+                    _args.HasContinued = value;
+                }
+                _hasContinued = value;
+            }
+        }
+
+        public DataInterceptedEventArgs(DataInterceptedEventArgs args)
+        {
+            _args = args;
+            _ogData = args._ogData;
+            _ogString = args._ogString;
+            _transmitter = args._transmitter;
+            _continuation = args._continuation;
+            _continueLock = args._continueLock;
+
+            Step = args.Step;
+            Timestamp = args.Timestamp;
+            IsOutgoing = args.IsOutgoing;
+            MessageType = args.MessageType;
+        }
         public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing)
         {
             _ogData = packet.ToBytes();
@@ -50,12 +112,6 @@ namespace Tangine.Network
             IsOutgoing = isOutgoing;
             Timestamp = DateTime.Now;
         }
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DataInterceptedEventArgs"/> class.
-        /// </summary>
-        /// <param name="packet">The intercepted message.</param>
-        /// <param name="step">The current count/step/order of the intercepted message.</param>
-        /// <param name="continuation">The method that will be called when the user invokes <see cref="Continue"/>.</param>
         public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing, Func<Task> continuation)
             : this(packet, step, isOutgoing)
         {

@@ -94,6 +94,12 @@ namespace Tanji.Services.Modules.Models
                 ConstructorInfo moduleConstructor = Type.GetConstructor(Type.EmptyTypes);
                 moduleConstructor.Invoke(Instance, null);
 
+                if (App.Master.Connection.IsConnected)
+                {
+                    Instance.Synchronize(App.Master.Game);
+                    Instance.Synchronize(App.Master.GameData);
+                }
+
                 UserInterface = (Instance as Form);
                 if (UserInterface != null)
                 {

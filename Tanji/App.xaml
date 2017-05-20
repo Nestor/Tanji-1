@@ -219,48 +219,32 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetProperty="Background.Color"
-                                                            Duration="0:0:0.1"
-                                                            To="#F4F4F4"/>
-                                            <ColorAnimation Storyboard.TargetProperty="BorderBrush.Color"
-                                                            Duration="0:0:0.1"
-                                                            To="#ADB2B5"/>
-                                            <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
-                                                            Duration="0:0:0.1"
-                                                            To="#838383"/>
-                                            <DoubleAnimation Storyboard.TargetProperty="Effect.Opacity"
-                                                             Duration="0:0:0.1"
-                                                             To="0.3"/>
-                                            <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
-                                                             Duration="0:0:0.1"
-                                                             To="1"/>
-                                            <DoubleAnimation Storyboard.TargetProperty="Effect.ShadowDepth"
-                                                             Duration="0:0:0.1"
-                                                             To="1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetProperty="Background.Color"
-                                                Duration="0:0:0.1"/>
-                                            <ColorAnimation Storyboard.TargetProperty="BorderBrush.Color"
-                                                Duration="0:0:0.1"/>
-                                            <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
-                                                Duration="0:0:0.1"/>
-                                            <DoubleAnimation Storyboard.TargetProperty="Effect.Opacity"
-                                                Duration="0:0:0.1"/>
-                                            <DoubleAnimation Storyboard.TargetProperty="Effect.BlurRadius"
-                                                Duration="0:0:0.1"/>
-                                            <DoubleAnimation Storyboard.TargetProperty="Effect.ShadowDepth"
-                                                Duration="0:0:0.1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
+                                <Setter Property="Foreground" Value="#838383"/>
+                                <Setter Property="Background" Value="#F4F4F4"/>
+                                <Setter Property="BorderBrush" Value="#ADB2B5"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black"
+                                                          Opacity="0.3"
+                                                          Direction="315"
+                                                          BlurRadius="1"
+                                                          ShadowDepth="1"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="True">
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="{StaticResource TJPrimaryBrush}"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource TJPrimaryDarkBrush}"/>
+                                <Setter Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Black"
+                                                          Opacity="0.6"
+                                                          Direction="315"
+                                                          BlurRadius="4"
+                                                          ShadowDepth="2"/>
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>

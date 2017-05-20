@@ -33,11 +33,11 @@
             // 
             // LoggerTxt
             // 
-            this.LoggerTxt.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(10)))), ((int)(((byte)(10)))), ((int)(((byte)(10)))));
+            this.LoggerTxt.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(15)))));
             this.LoggerTxt.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.LoggerTxt.DetectUrls = false;
             this.LoggerTxt.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.LoggerTxt.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.LoggerTxt.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LoggerTxt.ForeColor = System.Drawing.Color.White;
             this.LoggerTxt.HideSelection = false;
             this.LoggerTxt.Location = new System.Drawing.Point(0, 0);

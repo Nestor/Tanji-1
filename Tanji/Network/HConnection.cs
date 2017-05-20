@@ -181,7 +181,7 @@ namespace Tanji.Network
                 if (GameContext != null &&
                     GameContext.OutMessages.TryGetValue(packet.Id, out MessageItem message))
                 {
-                    args.Message = message;
+                    args.MessageType = message;
                 }
 
                 try { OnDataOutgoing(args); }
@@ -210,7 +210,7 @@ namespace Tanji.Network
                 if (GameContext != null &&
                     GameContext.InMessages.TryGetValue(packet.Id, out MessageItem message))
                 {
-                    args.Message = message;
+                    args.MessageType = message;
                 }
 
                 try { OnDataIncoming(args); }

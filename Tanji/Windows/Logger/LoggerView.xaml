@@ -22,7 +22,9 @@
         <KeyBinding Modifiers="Ctrl" Key="I" Command="{Binding ToggleViewIncomingCommand}"/>
     </Window.InputBindings>
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
+        <Menu Height="20"
+              Padding="1,1,0,0"
+              DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="Find"
                           InputGestureText="Ctrl+F"
@@ -83,7 +85,7 @@
             <StatusBarItem Content="{Binding IsViewingIncoming}"
                            ContentStringFormat="View Incoming: {0}"/>
             <Separator/>
-            <StatusBarItem Content="{Binding Revision, Mode=OneTime}"
+            <StatusBarItem Content="{Binding Revision, Mode=OneWay}"
                            ContentStringFormat="Revision: {0}"/>
         </StatusBar>
         <ContentPresenter Content="{Binding PacketLoggerHost}"/>

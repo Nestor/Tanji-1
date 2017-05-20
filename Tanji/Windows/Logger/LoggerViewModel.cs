@@ -25,6 +25,7 @@ namespace Tanji.Windows.Logger
         private readonly Dictionary<int, MessageItem> _ignoredMessages;
         private readonly Action<List<Tuple<string, Color>>> _displayEntry;
 
+        public Color FilterHighlight { get; set; } = Color.Yellow;
         public Color DetailHighlight { get; set; } = Color.DarkGray;
         public Color IncomingHighlight { get; set; } = Color.FromArgb(178, 34, 34);
         public Color OutgoingHighlight { get; set; } = Color.FromArgb(0, 102, 204);
@@ -271,6 +272,8 @@ namespace Tanji.Windows.Logger
 
             Visibility = Visibility.Visible;
             IsReceiving = true;
+
+            RaiseOnPropertyChanged(nameof(Revision));
         }
 
         public void HandleOutgoing(DataInterceptedEventArgs e) => PushToQueue(e);
@@ -286,11 +289,11 @@ namespace Tanji.Windows.Logger
                 var entry = new List<Tuple<string, Color>>();
                 if (args.IsBlocked)
                 {
-                    entry.Add(Tuple.Create("[Blocked]\r\n", DetailHighlight));
+                    entry.Add(Tuple.Create("[Blocked]\r\n", FilterHighlight));
                 }
                 if (!args.IsOriginal)
                 {
-                    entry.Add(Tuple.Create("[Replaced]\r\n", DetailHighlight));
+                    entry.Add(Tuple.Create("[Replaced]\r\n", FilterHighlight));
                 }
                 if (IsDisplayingTimestamp)
                 {

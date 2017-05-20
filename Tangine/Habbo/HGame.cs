@@ -14,14 +14,13 @@ using Flazzy.ABC.AVM2.Instructions;
 
 namespace Tangine.Habbo
 {
-    public enum Sanitization
+    [Flags]
+    public enum GSanitizations
     {
         None = 0,
         Deobfuscate = 1,
         RegisterRename = 2,
-        IdentifierRename = 4,
-
-        All = (Deobfuscate | RegisterRename | IdentifierRename)
+        IdentifierRename = 4
     }
 
     public class HGame : ShockwaveFlash
@@ -91,22 +90,22 @@ namespace Tangine.Habbo
             Messages = new SortedDictionary<string, List<MessageItem>>();
         }
 
-        public void Sanitize(Sanitization sanitization)
+        public void Sanitize(GSanitizations sanitizations)
         {
-            if (sanitization.HasFlag(Sanitization.IdentifierRename))
+            if (sanitizations.HasFlag(GSanitizations.IdentifierRename))
             {
                 RenameIdentifiers();
             }
-            if (sanitization.HasFlag(Sanitization.Deobfuscate))
+            if (sanitizations.HasFlag(GSanitizations.Deobfuscate))
             {
                 Deobfuscate();
             }
-            if (sanitization.HasFlag(Sanitization.RegisterRename))
+            if (sanitizations.HasFlag(GSanitizations.RegisterRename))
             {
                 RenameRegisters();
             }
         }
-        #region Method Body Sanitization
+        #region Sanitization
         protected void Deobfuscate()
         {
             foreach (ABCFile abc in ABCFiles)
@@ -568,22 +567,6 @@ namespace Tangine.Habbo
         }
         #endregion
 
-        public bool TestABCWriter()
-        {
-            foreach (ABCFile abc in ABCFiles)
-            {
-                foreach (ASMethodBody body in abc.MethodBodies)
-                {
-                    byte[] oldC = body.Code;
-                    byte[] newC = body.ParseCode().ToArray();
-                    if (!Enumerable.SequenceEqual(oldC, newC))
-                    {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
         public bool InjectRawCamera()
         {
             // TODO: Try to split this up.
@@ -605,7 +588,7 @@ namespace Tangine.Habbo
             int assignDataMethodIndex = abc.AddMethod(assignDataMethod);
 
             var bitmapParam = new ASParameter(abc, assignDataMethod);
-            bitmapParam.TypeIndex = abc.Pool.GetMultinameIndices("BitmapData").First();
+            bitmapParam.TypeIndex = abc.Pool.GetMultinameIndex("BitmapData");
             assignDataMethod.Parameters.Add(bitmapParam);
 
             var assignDataBody = new ASMethodBody(abc);
@@ -815,57 +798,6 @@ namespace Tangine.Habbo
 
             return DisableHostChanges();
         }
-        public bool InjectMessageLogger()
-        {
-            throw new NotSupportedException();
-
-            ABCFile abc = ABCFiles.Last();
-            ASInstance decoderInstance = abc.GetFirstInstance("_-1l6"); // TODO: Find the instance without a name.
-
-            var structureQName = new ASMultiname(abc.Pool);
-            structureQName.NameIndex = abc.Pool.AddConstant("structure");
-            structureQName.Kind = MultinameKind.QName;
-            structureQName.NamespaceIndex = 1; // Public
-
-            var structureSlot = new ASTrait(abc);
-            structureSlot.Kind = TraitKind.Slot;
-            structureSlot.QNameIndex = abc.Pool.AddConstant(structureQName);
-            structureSlot.TypeIndex = abc.Pool.GetMultinameIndices("Array").First();
-            decoderInstance.Traits.Add(structureSlot);
-
-            ASCode ctorCode = decoderInstance.Constructor.Body.ParseCode();
-            ctorCode.InsertRange(ctorCode.Count - 2, new ASInstruction[]
-            {
-                new GetLocal0Ins(),
-                new NewArrayIns(0),
-                new SetPropertyIns(abc) { PropertyNameIndex = structureSlot.QNameIndex }
-            });
-            decoderInstance.Constructor.Body.Code = ctorCode.ToArray();
-
-            var addTypeMethod = new ASMethod(abc);
-            addTypeMethod.ReturnTypeIndex = 2; // void
-            int addTypeMethodIndex = abc.AddMethod(addTypeMethod);
-
-            var valueParam = new ASParameter(abc, addTypeMethod);
-            valueParam.NameIndex = abc.Pool.AddConstant("value");
-            valueParam.TypeIndex = abc.Pool.GetMultinameIndices("Object").First();
-            addTypeMethod.Parameters.Add(valueParam);
-
-            var addTypeBody = new ASMethodBody(abc);
-            addTypeBody.MethodIndex = addTypeMethodIndex;
-            addTypeBody.InitialScopeDepth = 5;
-            addTypeBody.Code = new byte[0];
-            addTypeBody.MaxScopeDepth = 6;
-            addTypeBody.LocalCount = 10;
-            addTypeBody.MaxStack = 5;
-            abc.AddMethodBody(addTypeBody);
-
-            var addTypeCode = new ASCode(abc, addTypeBody);
-            addTypeBody.Code = addTypeCode.ToArray();
-
-            decoderInstance.AddMethod(addTypeMethod, "addType");
-            return true;
-        }
         public bool InjectKeyShouter(int messageId)
         {
             ABCFile abc = ABCFiles.Last();
@@ -977,6 +909,79 @@ namespace Tangine.Habbo
             code.JumpExits[ifNotAvailable] = jumpExit;
             logMethod.Body.Code = code.ToArray();
             logMethod.Body.MaxStack += 3;
+            return true;
+        }
+        public bool InjectMessageLogger(string functionName)
+        {
+            ABCFile abc = ABCFiles.Last();
+            ASInstance decoderInstance = null;
+            foreach (ASInstance instance in abc.Instances)
+            {
+                if (instance.IsInterface) continue;
+                if (instance.Traits.Count != 12) continue;
+                if (instance.Constructor.Parameters.Count != 2) continue;
+                if (instance.Constructor.Parameters[0].Type.Name != "int") continue;
+                if (instance.Constructor.Parameters[1].Type.Name != "ByteArray") continue;
+
+                decoderInstance = instance;
+                break;
+            }
+
+            var structureQName = new ASMultiname(abc.Pool);
+            structureQName.NameIndex = abc.Pool.AddConstant("values");
+            structureQName.Kind = MultinameKind.QName;
+            structureQName.NamespaceIndex = 1; // Public
+
+            var valuesSlot = new ASTrait(abc);
+            valuesSlot.Kind = TraitKind.Slot;
+            valuesSlot.QNameIndex = abc.Pool.AddConstant(structureQName);
+            valuesSlot.TypeIndex = abc.Pool.GetMultinameIndex("Array");
+            decoderInstance.Traits.Add(valuesSlot);
+
+            ASCode ctorCode = decoderInstance.Constructor.Body.ParseCode();
+            ctorCode.InsertRange(ctorCode.Count - 2, new ASInstruction[]
+            {
+                new GetLocal0Ins(),
+                new GetLocal1Ins(),
+                new NewArrayIns(1),
+                new SetPropertyIns(abc, valuesSlot.QNameIndex)
+            });
+            decoderInstance.Constructor.Body.Code = ctorCode.ToArray();
+
+            var addValueMethod = new ASMethod(abc);
+            addValueMethod.ReturnTypeIndex = 2; // void
+            int addTypeMethodIndex = abc.AddMethod(addValueMethod);
+
+            var valueParam = new ASParameter(abc, addValueMethod);
+            valueParam.NameIndex = abc.Pool.AddConstant("value");
+            valueParam.TypeIndex = abc.Pool.GetMultinameIndex("Object");
+            addValueMethod.Parameters.Add(valueParam);
+
+            var addValueBody = new ASMethodBody(abc);
+            addValueBody.MethodIndex = addTypeMethodIndex;
+            addValueBody.InitialScopeDepth = 5;
+            addValueBody.Code = new byte[0];
+            addValueBody.MaxScopeDepth = 6;
+            addValueBody.LocalCount = 2;
+            addValueBody.MaxStack = 3;
+            abc.AddMethodBody(addValueBody);
+
+            var addTypeCode = new ASCode(abc, addValueBody);
+            addTypeCode.AddRange(new ASInstruction[]
+            {
+                new GetLocal0Ins(),
+                new PushScopeIns(),
+
+                new GetLocal0Ins(),
+                new GetPropertyIns(abc, valuesSlot.QNameIndex),
+                new GetLocal1Ins(),
+                new CallPropVoidIns(abc, abc.Pool.GetMultinameIndex("push"), 1),
+
+                new ReturnVoidIns()
+            });
+            addValueBody.Code = addTypeCode.ToArray();
+
+            decoderInstance.AddMethod(addValueMethod, "addValue");
             return true;
         }
         public bool ReplaceRSAKeys(string exponent, string modulus)
