@@ -75,6 +75,18 @@ namespace Tanji.Services.Modules
 
                 LoadModules();
             }
+
+#if DEBUG
+            for (int i = 0; i < 10; i++)
+            {
+                var module = new ModuleInfo(Assembly_Resolve)
+                {
+                    Name = $"Test Module #{i}",
+                    Description = $"Test Description #{i}"
+                };
+                Modules.Add(module);
+            }
+#endif
         }
 
         private void Install(object obj)

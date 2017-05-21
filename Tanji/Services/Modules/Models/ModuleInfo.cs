@@ -54,9 +54,9 @@ namespace Tanji.Services.Modules.Models
 
         public Command ToggleStateCommand { get; }
 
-        public ModuleInfo(ResolveEventHandler resolveHandler)
+        public ModuleInfo(ResolveEventHandler assemblyResolver)
         {
-            _resolverHandler = resolveHandler;
+            _resolverHandler = assemblyResolver;
 
             Authors = new List<AuthorAttribute>();
             ToggleStateCommand = new Command(ToggleState);

@@ -203,7 +203,7 @@ namespace Tangine.Network.Protocol
             }
             return result;
         }
-
+        
         public byte[] ToBytes()
         {
             if (_toBytesCache != null)

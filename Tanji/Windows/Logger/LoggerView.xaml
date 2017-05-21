@@ -49,6 +49,9 @@
                     <MenuItem Header="Hash"
                               IsCheckable="True"
                               IsChecked="{Binding IsDisplayingHash}"/>
+                    <MenuItem Header="Hexadecimal"
+                              IsCheckable="True"
+                              IsChecked="{Binding IsDisplayingHexadecimal}"/>
                     <MenuItem Header="Structure"
                               IsCheckable="True"
                               IsChecked="{Binding IsDisplayingStructure}"/>

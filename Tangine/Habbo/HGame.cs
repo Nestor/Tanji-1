@@ -1412,7 +1412,7 @@ namespace Tangine.Habbo
                         output.Write(reference.FromClass.Constructor);
                         output.Write(reference.FromClass.Instance.Constructor);
                     }
-                    if (!IsOutgoing)
+                    if (!IsOutgoing && Parser != null)
                     {
                         output.Write(Parser.Instance, true);
                     }

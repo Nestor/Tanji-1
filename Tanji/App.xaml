@@ -2,8 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="clr-namespace:Tanji.Controls;assembly="
-             ShutdownMode="OnMainWindowClose"
              xmlns:modules="clr-namespace:Tanji.Services.Modules.Models"
+             ShutdownMode="OnMainWindowClose"
              StartupUri="Windows/Main/MainView.xaml">
     <Application.Resources>
 
@@ -33,16 +33,16 @@
                     <ControlTemplate TargetType="TabItem">
                         <Grid SnapsToDevicePixels="True">
                             <Border HorizontalAlignment="Stretch"
-                                            Background="{TemplateBinding Background}">
+                                    Background="{TemplateBinding Background}">
                                 <ContentPresenter Margin="0,5,0,5"
-                                                          ContentSource="Header"
-                                                          HorizontalAlignment="Center"/>
+                                                  ContentSource="Header"
+                                                  HorizontalAlignment="Center"/>
                             </Border>
                             <Border x:Name="Line"
-                                            Margin="10,0,10,0"
-                                            BorderBrush="DarkGray"
-                                            BorderThickness="0,0,0,1"
-                                            VerticalAlignment="Bottom"/>
+                                    Margin="10,0,10,0"
+                                    BorderBrush="DarkGray"
+                                    BorderThickness="0,0,0,1"
+                                    VerticalAlignment="Bottom"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <MultiTrigger>
@@ -194,6 +194,48 @@
                     </Setter>-->
         </Style>
 
+        <Style TargetType="Label">
+            <Setter Property="IsEnabled" Value="False"/>
+            <Setter Property="BorderBrush" Value="{StaticResource TJPrimaryBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Label">
+                        <Grid>
+                            <Border x:Name="Border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1,0,1,0"/>
+                            <ContentPresenter Margin="0,0,0,2"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard AutoReverse="True"
+                                                    RepeatBehavior="Forever">
+                                            <ThicknessAnimation Storyboard.TargetName="Border"
+                                                                Storyboard.TargetProperty="Margin"
+                                                                Duration="0:0:0.30" To="0,8,0,8"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ThicknessAnimation Storyboard.TargetName="Border"
+                                                                Storyboard.TargetProperty="Margin"
+                                                                Duration="0:0:0"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="{StaticResource TJPrimaryBrush}"/>
@@ -297,44 +339,19 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style TargetType="Label">
-            <Setter Property="IsEnabled" Value="False"/>
-            <Setter Property="BorderBrush" Value="{StaticResource TJPrimaryBrush}"/>
+        <Style TargetType="ListViewItem">
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Label">
-                        <Grid>
-                            <Border x:Name="Border"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="1,0,1,0"/>
-                            <ContentPresenter Margin="0,0,0,2"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Center"/>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border x:Name="Line"
+                                    Margin="50,0,50,0"
+                                    BorderBrush="DarkGray"
+                                    BorderThickness="0,0,0,1"/>
+                            <ContentPresenter x:Name="contentPresenter"/>
                         </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="True">
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard AutoReverse="True"
-                                                    RepeatBehavior="Forever">
-                                            <ThicknessAnimation Storyboard.TargetName="Border"
-                                                                Storyboard.TargetProperty="Margin"
-                                                                Duration="0:0:0.30" To="0,8,0,8"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ThicknessAnimation Storyboard.TargetName="Border"
-                                                                Storyboard.TargetProperty="Margin"
-                                                                Duration="0:0:0"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -662,19 +679,15 @@
 
         <DataTemplate DataType="{x:Type modules:ModuleInfo}">
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="339"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="100"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="3"/>
-                    <RowDefinition Height="20"/>
-                </Grid.RowDefinitions>
-                <TextBlock Text="{Binding Name, StringFormat={}Name: {0}}" Grid.Row="0" Grid.Column="0"/>
-                <TextBlock Text="{Binding Description, StringFormat={}Description: {0}}" Grid.Row="2" Grid.Column="0"/>
-                <Button Content="{Binding NextStateAction}" Grid.Row="2" Grid.Column="2" Command="{Binding ToggleStateCommand}"/>
+                <StackPanel MinHeight="35">
+                    <TextBlock Text="{Binding Name}"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Margin="10,0,0,0" Text="{Binding Description}"/>
+                </StackPanel>
+                <Button Margin="0,0,3,2"
+                        Width="100" Height="20"
+                        HorizontalAlignment="Right"
+                        Content="{Binding NextStateAction}"/>
             </Grid>
         </DataTemplate>
 

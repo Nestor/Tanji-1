@@ -170,7 +170,7 @@ namespace Tangine.Network.Protocol
         }
         public override ushort ReadUInt16(IList<byte> data, int index)
         {
-            return (ushort)ReadInt32(data, index);
+            return (ushort)(data[index + 1] - 64 + (data[index] - 64) * 64);
         }
         public override double ReadDouble(IList<byte> data, int index)
         {

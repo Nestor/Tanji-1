@@ -153,8 +153,11 @@ namespace Tanji.Services.Connection
                     App.Master.Game = new HGame(clientPath);
                     App.Master.Game.Disassemble();
 
-                    Status = GENERATING_MESSAGE_HASHES;
-                    App.Master.Game.GenerateMessageHashes();
+                    if (App.Master.Game.IsPostShuffle)
+                    {
+                        Status = GENERATING_MESSAGE_HASHES;
+                        App.Master.Game.GenerateMessageHashes();
+                    }
 
                     Status = SYNCHRONIZING_GAME;
                     App.Master.Synchronize(App.Master.Game);
@@ -181,8 +184,11 @@ namespace Tanji.Services.Connection
             App.Master.Game = new HGame(e.Payload);
             App.Master.Game.Disassemble();
 
-            Status = GENERATING_MESSAGE_HASHES;
-            App.Master.Game.GenerateMessageHashes();
+            if (App.Master.Game.IsPostShuffle)
+            {
+                Status = GENERATING_MESSAGE_HASHES;
+                App.Master.Game.GenerateMessageHashes();
+            }
 
             Status = MODIFYING_CLIENT;
             if (App.Master.Game.IsPostShuffle)

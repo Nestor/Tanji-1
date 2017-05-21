@@ -5,6 +5,7 @@ using System.ComponentModel;
 
 namespace Tanji.Controls
 {
+    [DesignerCategory("Code")]
     public class BindableToolStripMenuItem : ToolStripMenuItem, IBindableComponent
     {
         private BindingContext _context;

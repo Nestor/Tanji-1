@@ -10,9 +10,18 @@
         <local:ModulesViewModel/>
     </UserControl.DataContext>
     <Grid Width="478" Height="318">
-        <ListView SelectedItem="{Binding SelectedModule}" ItemsSource="{Binding Modules}" BorderThickness="0" Margin="0,0,0,25"/>
-        <ctrls:LabelBox Height="20" Margin="50,298,250,0" Title="Remote Module Port" Text="{Binding RemoteModulePort, Mode=OneTime}" IsReadOnly="True"/>
-        <Button Width="100" Height="20" Margin="273,298,105,0" Content="Uninstall" Command="{Binding UninstallCommand}"/>
-        <Button Width="100" Height="20" Margin="378,298,0,0" Content="Install" Command="{Binding InstallCommand}"/>
+        <ListView Margin="0,0,0,25"
+                  BorderThickness="0"
+                  ItemsSource="{Binding Modules}"
+                  SelectedItem="{Binding SelectedModule}">
+        </ListView>
+        <Button Content="Uninstall"
+                Margin="273,298,105,0"
+                Width="100" Height="20"
+                Command="{Binding UninstallCommand}"/>
+        <Button Content="Install"
+                Margin="378,298,0,0"
+                Width="100" Height="20"
+                Command="{Binding InstallCommand}"/>
     </Grid>
 </UserControl>
