@@ -20,27 +20,13 @@ namespace Tanji
         private readonly List<ISynchronizer> _synchronizers;
         private readonly SortedList<int, IReceiver> _receivers;
 
-        private HGame _hGame;
-        HGame IInstaller.Game
-        {
-            get { return _hGame; }
-        }
-        public HGame Game
-        {
-            get { return _hGame; }
-            set
-            {
-                _hGame = value;
-                Connection.GameContext = value;
-            }
-        }
-
         IHConnection IInstaller.Connection
         {
             get { return Connection; }
         }
         public HConnection Connection { get; }
 
+        public HGame Game { get; set; }
         public HGameData GameData { get; set; }
 
         public static IMaster Master { get; private set; }

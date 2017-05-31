@@ -4,25 +4,25 @@ using System.Collections.Generic;
 
 namespace Tangine.Network.Protocol
 {
-    public abstract class HEncoding
+    public abstract class HFormat
     {
         protected bool IsOutgoing { get; }
 
         public abstract int IdPosition { get; }
 
-        public static WedgieEncoding WedgieIn { get; }
-        public static WedgieEncoding WedgieOut { get; }
-        public static BigEndianEncoding BigEndian { get; }
+        public static EvaWireFormat EvaWire { get; }
+        public static WedgieFormat WedgieIn { get; }
+        public static WedgieFormat WedgieOut { get; }
 
-        static HEncoding()
+        static HFormat()
         {
-            BigEndian = new BigEndianEncoding();
-            WedgieIn = new WedgieEncoding(false);
-            WedgieOut = new WedgieEncoding(true);
+            EvaWire = new EvaWireFormat();
+            WedgieIn = new WedgieFormat(false);
+            WedgieOut = new WedgieFormat(true);
         }
-        protected HEncoding()
+        protected HFormat()
         { }
-        protected HEncoding(bool isOutgoing)
+        protected HFormat(bool isOutgoing)
         {
             IsOutgoing = isOutgoing;
         }
@@ -124,11 +124,11 @@ namespace Tangine.Network.Protocol
             }
             return ConstructTails(id, body);
         }
-        public void PlaceBytes(IList<byte> data, IList<byte> destination, int offset)
+        public void PlaceBytes(IList<byte> data, IList<byte> destination, int index)
         {
             for (int i = 0; i < data.Count; i++)
             {
-                destination[offset++] = data[i];
+                destination[index++] = data[i];
             }
         }
 

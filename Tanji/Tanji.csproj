@@ -69,9 +69,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Controls\BindableToolStripMenuItem.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="Controls\BindableToolStripMenuItem.cs" />
     <Compile Include="Controls\HPacketLogger.cs">
       <SubType>UserControl</SubType>
     </Compile>

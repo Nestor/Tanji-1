@@ -19,7 +19,8 @@ namespace Tangine.Network
         }
 
         public Socket Client { get; }
-        public HEncoding Resolver { get; set; }
+        public HFormat InFormat { get; set; }
+        public HFormat OutFormat { get; set; }
         public HotelEndPoint EndPoint { get; private set; }
 
         public RC4 Encrypter { get; set; }
@@ -70,11 +71,11 @@ namespace Tangine.Network
 
         public Task<HPacket> ReceivePacketAsync()
         {
-            if (Resolver == null)
+            if (InFormat == null)
             {
-                throw new NullReferenceException("Resolver cannot be null.");
+                throw new NullReferenceException("Incoming format cannot be null.");
             }
-            return Resolver.ReceivePacketAsync(this);
+            return InFormat.ReceivePacketAsync(this);
         }
         public Task<int> SendPacketAsync(HPacket packet)
         {
@@ -82,11 +83,11 @@ namespace Tangine.Network
         }
         public Task<int> SendPacketAsync(ushort id, params object[] values)
         {
-            if (Resolver == null)
+            if (OutFormat == null)
             {
-                throw new NullReferenceException("Resolver cannot be null.");
+                throw new NullReferenceException("Outgoing format cannot be null.");
             }
-            return SendAsync(Resolver.Construct(id, values));
+            return SendAsync(OutFormat.Construct(id, values));
         }
 
         public Task<int> SendAsync(byte[] buffer)
@@ -256,10 +257,21 @@ namespace Tangine.Network
         }
         public static async Task<HNode> ConnectNewAsync(IPEndPoint endpoint)
         {
-            var node = new HNode();
-            await node.ConnectAsync(endpoint).ConfigureAwait(false);
-
-            return node;
+            HNode remote = null;
+            try
+            {
+                remote = new HNode();
+                await remote.ConnectAsync(endpoint).ConfigureAwait(false);
+            }
+            catch { remote = null; }
+            finally
+            {
+                if (!remote?.IsConnected ?? false)
+                {
+                    remote = null;
+                }
+            }
+            return remote;
         }
         public static Task<HNode> ConnectNewAsync(IPAddress address, int port)
         {

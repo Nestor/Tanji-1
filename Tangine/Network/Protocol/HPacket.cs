@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System;
 
 namespace Tangine.Network.Protocol
 {
@@ -32,23 +33,23 @@ namespace Tangine.Network.Protocol
 
                 if (_toBytesCache != null || _toStringCache != null)
                 {
-                    byte[] idData = Resolver.GetBytes(value);
+                    byte[] idData = Format.GetBytes(value);
                     if (_toBytesCache != null)
                     {
-                        Resolver.PlaceBytes(idData, _toBytesCache, Resolver.IdPosition);
+                        Format.PlaceBytes(idData, _toBytesCache, Format.IdPosition);
                     }
                     if (_toStringCache != null)
                     {
                         char[] characters = _toStringCache.ToCharArray();
-                        characters[Resolver.IdPosition] = (char)idData[0];
-                        characters[Resolver.IdPosition + 1] = (char)idData[1];
+                        characters[Format.IdPosition] = (char)idData[0];
+                        characters[Format.IdPosition + 1] = (char)idData[1];
                         _toStringCache = new string(characters);
                     }
                 }
             }
         }
 
-        public HEncoding Resolver { get; }
+        public HFormat Format { get; }
         public int BodyLength => _body.Count;
         public int ReadableBytes => GetReadableBytes(Position);
 
@@ -56,13 +57,13 @@ namespace Tangine.Network.Protocol
         {
             _structurePattern = new Regex(@"{(?<kind>id|i|s|b|d|u):(?<value>[^}]*)\}", RegexOptions.IgnoreCase);
         }
-        public HPacket(HEncoding resolver)
+        public HPacket(HFormat resolver)
         {
             _body = new List<byte>();
 
-            Resolver = resolver;
+            Format = resolver;
         }
-        public HPacket(HEncoding resolver, IList<byte> data)
+        public HPacket(HFormat resolver, IList<byte> data)
             : this(resolver)
         {
             _body.AddRange(resolver.GetBody(data));
@@ -83,8 +84,8 @@ namespace Tangine.Network.Protocol
         }
         public virtual int ReadInt32(ref int position)
         {
-            int value = Resolver.ReadInt32(_body, position);
-            position += Resolver.GetSize(value);
+            int value = Format.ReadInt32(_body, position);
+            position += Format.GetSize(value);
             return value;
         }
 
@@ -98,8 +99,8 @@ namespace Tangine.Network.Protocol
         }
         public virtual string ReadUTF8(ref int position)
         {
-            string value = Resolver.ReadUTF8(_body, position);
-            position += Resolver.GetSize(value);
+            string value = Format.ReadUTF8(_body, position);
+            position += Format.GetSize(value);
             return value;
         }
 
@@ -113,8 +114,8 @@ namespace Tangine.Network.Protocol
         }
         public virtual bool ReadBoolean(ref int position)
         {
-            bool value = Resolver.ReadBoolean(_body, position);
-            position += Resolver.GetSize(value);
+            bool value = Format.ReadBoolean(_body, position);
+            position += Format.GetSize(value);
             return value;
         }
 
@@ -128,8 +129,8 @@ namespace Tangine.Network.Protocol
         }
         public virtual ushort ReadUInt16(ref int position)
         {
-            ushort value = Resolver.ReadUInt16(_body, position);
-            position += Resolver.GetSize(value);
+            ushort value = Format.ReadUInt16(_body, position);
+            position += Format.GetSize(value);
             return value;
         }
 
@@ -143,8 +144,8 @@ namespace Tangine.Network.Protocol
         }
         public virtual double ReadDouble(ref int position)
         {
-            double value = Resolver.ReadDouble(_body, position);
-            position += Resolver.GetSize(value);
+            double value = Format.ReadDouble(_body, position);
+            position += Format.GetSize(value);
             return value;
         }
 
@@ -191,7 +192,7 @@ namespace Tangine.Network.Protocol
 
         protected virtual byte[] AsBytes()
         {
-            return Resolver.Construct(Id, _body);
+            return Format.Construct(Id, _body);
         }
         protected virtual string AsString()
         {
@@ -203,7 +204,7 @@ namespace Tangine.Network.Protocol
             }
             return result;
         }
-        
+
         public byte[] ToBytes()
         {
             if (_toBytesCache != null)
@@ -221,21 +222,22 @@ namespace Tangine.Network.Protocol
             return (_toStringCache = AsString());
         }
 
-        public static byte[] ToBytes(HEncoding resolver, string signature)
+        public static byte[] ToBytes(HFormat format, string signature)
         {
-            for (int i = 0; i <= 13; i++)
+            MatchCollection matches = _structurePattern.Matches(signature);
+            if (matches.Count == 0)
             {
-                signature = signature.Replace(("[" + i + "]"),
-                    ((char)i).ToString());
+                for (int i = 0; i <= 13; i++)
+                {
+                    signature = signature.Replace(("[" + i + "]"),
+                        ((char)i).ToString());
+                }
+                return Encoding.Default.GetBytes(signature);
             }
-
-            int openBraceIndex = signature.IndexOf('{');
-            if (openBraceIndex != -1)
+            else
             {
-                MatchCollection matches = _structurePattern.Matches(signature, openBraceIndex);
-
+                ushort id = 0;
                 var values = new List<object>(matches.Count);
-                var replacements = new Dictionary<string, string>(matches.Count);
                 foreach (Match match in matches)
                 {
                     string value = match.Groups["value"].Value;
@@ -244,6 +246,10 @@ namespace Tangine.Network.Protocol
                     {
                         case "id":
                         {
+                            if (!ushort.TryParse(value, out id))
+                            {
+                                throw new ArgumentException("Unable to locate the '{id:N}' parameter.", nameof(signature));
+                            }
                             break;
                         }
                         case "i": values.Add(int.Parse(value)); break;
@@ -263,8 +269,8 @@ namespace Tangine.Network.Protocol
                         case "u": values.Add(ushort.Parse(value)); break;
                     }
                 }
+                return format.Construct(id, values.ToArray());
             }
-            return Encoding.Default.GetBytes(signature);
         }
     }
 }

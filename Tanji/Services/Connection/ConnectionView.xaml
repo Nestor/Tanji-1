@@ -23,20 +23,31 @@
                 </MultiBinding>
             </TextBoxBase.IsReadOnly>
         </ctrls:LabelBox>
-        <CheckBox Padding="4,-1,0,0"
+        <CheckBox Content="Automatic Server Extraction"
+                  Padding="4,-1,0,0"
                   Margin="307,0,0,298"
                   VerticalContentAlignment="Center"
-                  Content="Automatic Server Extraction"
                   IsChecked="{Binding IsAutomaticServerExtraction}"
                   IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
         <Separator Margin="0,20,0,291"
                    Background="{StaticResource TJPrimaryBrush}"/>
         <Button Content="Destroy Certificates"
-                Command="{Binding DestroyCertificatesCommand}" Height="20" Width="178" Margin="205,246,95,52"/>
+                Height="20"
+                Margin="205,246,118,52"
+                Command="{Binding DestroyCertificatesCommand}"
+                IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
         <Button Content="Export Certificate Authority"
-                Command="{Binding ExportCertificateAuthorityCommand}" Height="20" Width="200" Margin="0,246,278,52"/>
-        <ctrls:LabelBox Margin="0,271,95,27"
-                        Title="Custom Client"
+                Height="20"
+                Margin="0,246,278,52"
+                Command="{Binding ExportCertificateAuthorityCommand}"/>
+        <ctrls:LabelBox Title="Proxy Port"
+                        Height="20"
+                        Margin="365,246,0,52"
+                        Text="{Binding ProxyPort}"
+                        IsReadOnlyCaretVisible="True"
+                        IsReadOnly="{Binding IsConnecting}"/>
+        <ctrls:LabelBox Title="Custom Client"
+                        Margin="0,271,95,27"
                         TextAlignment="Center"
                         IsReadOnlyCaretVisible="True"
                         Text="{Binding CustomClientPath}"

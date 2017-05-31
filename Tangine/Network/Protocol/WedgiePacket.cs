@@ -2,15 +2,15 @@
 
 namespace Tangine.Network.Protocol
 {
-    public class HAncient : HPacket
+    public class WedgiePacket : HPacket
     {
-        public HAncient(bool isOutgoing)
+        public WedgiePacket(bool isOutgoing)
             : base(GetResolver(isOutgoing))
         { }
-        public HAncient(bool isOutgoing, IList<byte> data)
+        public WedgiePacket(bool isOutgoing, IList<byte> data)
             : base(GetResolver(isOutgoing), data)
         { }
-        public HAncient(bool isOutgoing, ushort id, params object[] values)
+        public WedgiePacket(bool isOutgoing, ushort id, params object[] values)
             : this(isOutgoing, Construct(isOutgoing, id, values))
         { }
 
@@ -19,9 +19,9 @@ namespace Tangine.Network.Protocol
             return null;
         }
 
-        private static HEncoding GetResolver(bool isOutgoing)
+        private static HFormat GetResolver(bool isOutgoing)
         {
-            return (isOutgoing ? HEncoding.WedgieOut : HEncoding.WedgieIn);
+            return (isOutgoing ? HFormat.WedgieOut : HFormat.WedgieIn);
         }
         public static byte[] Construct(bool isOutgoing, ushort id, params object[] values)
         {

@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace Tangine.Network.Protocol
 {
-    public class BigEndianEncoding : HEncoding
+    public class EvaWireFormat : HFormat
     {
         public override int IdPosition => 4;
 
-        public BigEndianEncoding()
+        public EvaWireFormat()
             : base(false)
         { }
 
@@ -169,11 +169,11 @@ namespace Tangine.Network.Protocol
 
         public override HPacket CreatePacket(IList<byte> data)
         {
-            return new HModern(data);
+            return new EvaWirePacket(data);
         }
         public override HPacket CreatePacket(ushort id, params object[] values)
         {
-            return new HModern(id, values);
+            return new EvaWirePacket(id, values);
         }
     }
 }

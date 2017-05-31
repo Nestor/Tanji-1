@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Tangine.Habbo;
 using Tangine.Network.Protocol;
 
 namespace Tangine.Network
@@ -16,12 +15,11 @@ namespace Tangine.Network
         private readonly object _continueLock;
         private readonly Func<Task> _continuation;
         private readonly DataInterceptedEventArgs _args;
-        private readonly Func<HPacket, Task<int>> _transmitter;
+        private readonly Func<HPacket, Task<int>> _relayer;
 
         public int Step { get; }
         public bool IsOutgoing { get; }
         public DateTime Timestamp { get; }
-        public MessageItem MessageType { get; set; }
 
         public bool IsOriginal
         {
@@ -93,14 +91,13 @@ namespace Tangine.Network
             _args = args;
             _ogData = args._ogData;
             _ogString = args._ogString;
-            _transmitter = args._transmitter;
+            _relayer = args._relayer;
             _continuation = args._continuation;
             _continueLock = args._continueLock;
 
             Step = args.Step;
             Timestamp = args.Timestamp;
             IsOutgoing = args.IsOutgoing;
-            MessageType = args.MessageType;
         }
         public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing)
         {
@@ -118,10 +115,10 @@ namespace Tangine.Network
             _continueLock = new object();
             _continuation = continuation;
         }
-        public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing, Func<Task> continuation, Func<HPacket, Task<int>> transmitter)
+        public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing, Func<Task> continuation, Func<HPacket, Task<int>> relayer)
             : this(packet, step, isOutgoing, continuation)
         {
-            _transmitter = transmitter;
+            _relayer = relayer;
         }
 
         public void Continue()
@@ -136,7 +133,7 @@ namespace Tangine.Network
                 {
                     if (relay)
                     {
-                        _transmitter(Packet);
+                        _relayer(Packet);
                         WasRelayed = true;
                     }
 
@@ -153,7 +150,7 @@ namespace Tangine.Network
         {
             if (!IsOriginal)
             {
-                Packet = Packet.Resolver.CreatePacket(_ogData);
+                Packet = Packet.Format.CreatePacket(_ogData);
             }
         }
     }

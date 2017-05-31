@@ -79,14 +79,14 @@
     <Compile Include="Network\HNode.cs" />
     <Compile Include="Network\HotelEndPoint.cs" />
     <Compile Include="Network\IHConnection.cs" />
-    <Compile Include="Network\Protocol\HAncient.cs" />
-    <Compile Include="Network\Protocol\Encodings\WedgieEncoding.cs" />
+    <Compile Include="Network\Protocol\WedgiePacket.cs" />
+    <Compile Include="Network\Protocol\Formats\WedgieFormat.cs" />
     <Compile Include="Crypto\RC4.cs" />
     <Compile Include="Network\Protocol\HPacket.cs" />
     <Compile Include="Network\Protocol\IHabboData.cs" />
-    <Compile Include="Network\Protocol\HModern.cs" />
-    <Compile Include="Network\Protocol\Encodings\BigEndianEncoding.cs" />
-    <Compile Include="Network\Protocol\Encodings\HEncoding.cs" />
+    <Compile Include="Network\Protocol\EvaWirePacket.cs" />
+    <Compile Include="Network\Protocol\Formats\EvaWireFormat.cs" />
+    <Compile Include="Network\Protocol\Formats\HFormat.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

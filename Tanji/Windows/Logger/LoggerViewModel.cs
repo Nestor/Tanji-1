@@ -113,7 +113,7 @@ namespace Tanji.Windows.Logger
             }
         }
 
-        private bool _isDisplayingHexadecimal = true;
+        private bool _isDisplayingHexadecimal = false;
         public bool IsDisplayingHexadecimal
         {
             get { return _isDisplayingHexadecimal; }
@@ -308,12 +308,19 @@ namespace Tanji.Windows.Logger
                 }
                 if (IsDisplayingTimestamp)
                 {
-                    entry.Add(Tuple.Create($"[{args.Timestamp:h:mm:ss}]\r\n", DetailHighlight));
+                    entry.Add(Tuple.Create($"[{args.Timestamp:M/d H:mm:ss}]\r\n", DetailHighlight));
                 }
+
                 MessageItem message = GetMessage(args);
                 if (IsDisplayingHash && message != null && !string.IsNullOrWhiteSpace(message.Hash))
                 {
                     entry.Add(Tuple.Create($"[{message.Hash}]\r\n", DetailHighlight));
+                }
+
+                if (IsDisplayingHexadecimal)
+                {
+                    string hex = BitConverter.ToString(args.Packet.ToBytes());
+                    entry.Add(Tuple.Create($"[{hex.Replace("-", string.Empty)}]\r\n", DetailHighlight));
                 }
 
                 string arrow = "->";
@@ -381,12 +388,6 @@ namespace Tanji.Windows.Logger
                         entry.Add(Tuple.Create(structure + "\r\n", StructureHighlight));
                     }
                 }
-
-                if (IsDisplayingHexadecimal)
-                {
-                    entry.Add(Tuple.Create($"{{{BitConverter.ToString(args.Packet.ToBytes()).Replace("-", "").ToLower()}}}\r\n", FilterHighlight));
-                }
-
                 entry.Add(Tuple.Create("--------------------\r\n", DetailHighlight));
 
                 while (!_packetLogger.IsHandleCreated) ;

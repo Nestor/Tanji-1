@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 namespace Tangine.Network.Protocol
 {
-    public class WedgieEncoding : HEncoding
+    public class WedgieFormat : HFormat
     {
         public List<byte> DataBacklog { get; }
         public override int IdPosition { get; }
 
-        public WedgieEncoding(bool isOutgoing)
+        public WedgieFormat(bool isOutgoing)
             : base(isOutgoing)
         {
             if (!isOutgoing)
@@ -264,11 +264,11 @@ namespace Tangine.Network.Protocol
 
         public override HPacket CreatePacket(IList<byte> data)
         {
-            return new HAncient(IsOutgoing, data);
+            return new WedgiePacket(IsOutgoing, data);
         }
         public override HPacket CreatePacket(ushort id, params object[] values)
         {
-            return new HAncient(IsOutgoing, id, values);
+            return new WedgiePacket(IsOutgoing, id, values);
         }
 
         private byte[] AttemptStitchBuffer()

@@ -2,15 +2,15 @@
 
 namespace Tangine.Network.Protocol
 {
-    public class HModern : HPacket
+    public class EvaWirePacket : HPacket
     {
-        public HModern()
-            : base(HEncoding.BigEndian)
+        public EvaWirePacket()
+            : base(HFormat.EvaWire)
         { }
-        public HModern(IList<byte> data)
-            : base(HEncoding.BigEndian, data)
+        public EvaWirePacket(IList<byte> data)
+            : base(HFormat.EvaWire, data)
         { }
-        public HModern(ushort id, params object[] values)
+        public EvaWirePacket(ushort id, params object[] values)
             : this(Construct(id, values))
         { }
 
@@ -21,11 +21,11 @@ namespace Tangine.Network.Protocol
 
         public static byte[] ToBytes(string signature)
         {
-            return ToBytes(HEncoding.BigEndian, signature);
+            return ToBytes(HFormat.EvaWire, signature);
         }
         public static byte[] Construct(ushort id, params object[] values)
         {
-            return HEncoding.BigEndian.Construct(id, values);
+            return HFormat.EvaWire.Construct(id, values);
         }
     }
 }

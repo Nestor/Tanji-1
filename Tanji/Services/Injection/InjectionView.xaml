@@ -9,6 +9,9 @@
              xmlns:inspector="clr-namespace:Tanji.Services.Injection.Inspector"
              xmlns:filter="clr-namespace:Tanji.Services.Injection.Filter"
              mc:Ignorable="d">
+    <UserControl.DataContext>
+        <local:InjectionViewModel/>
+    </UserControl.DataContext>
     <Grid Width="478" Height="318">
         <TabControl Margin="0,0,0,27"
                     Padding="3,3,3,3"
@@ -26,19 +29,22 @@
                 <filter:FilterView/>
             </TabItem>
         </TabControl>
-        <Separator Height="7"
-                   Margin="0,291,0,20"
+        <Separator Margin="0,291,0,20"
                    Background="{StaticResource TJPrimaryBrush}"/>
-        <ComboBox Height="20"
+        <ComboBox Text="{Binding PacketSignature}"
+                  Height="20"
                   Padding="0"
                   IsEditable="True"
+                  Margin="0,298,220,0"
                   VerticalContentAlignment="Center"
-                  Margin="0,298,220,0"/>
+                  ItemsSource="{Binding PacketSignatures}"/>
         <Button Content="Send To Client"
                 Height="20"
-                Margin="263,298,110,0"/>
+                Margin="263,298,110,0"
+                Command="{Binding SendToClientCommand}"/>
         <Button Content="Send To Server"
                 Height="20"
-                Margin="373,298,0,0"/>
+                Margin="373,298,0,0"
+                Command="{Binding SendToServerCommand}"/>
     </Grid>
 </UserControl>

@@ -16,7 +16,7 @@ namespace Tanji.Network
         private readonly object _disconnectLock;
 
         /// <summary>
-        /// Occurs when the connection between the game client, and server have been intercepted.
+        /// Occurs when the connection between the client, and server have been intercepted.
         /// </summary>
         public event EventHandler Connected;
         protected virtual void OnConnected(EventArgs e)
@@ -34,7 +34,7 @@ namespace Tanji.Network
         }
 
         /// <summary>
-        /// Occurs when the game client's outgoing data has been intercepted.
+        /// Occurs when the client's outgoing data has been intercepted.
         /// </summary>
         public event EventHandler<DataInterceptedEventArgs> DataOutgoing;
         protected virtual void OnDataOutgoing(DataInterceptedEventArgs e)
@@ -51,7 +51,6 @@ namespace Tanji.Network
             DataIncoming?.Invoke(this, e);
         }
 
-        public HGame GameContext { get; set; }
         public int SocketSkip { get; set; } = 2;
         public bool IsConnected { get; private set; }
 
@@ -100,17 +99,23 @@ namespace Tanji.Network
                     Remote = await HNode.ConnectNewAsync(endpoint).ConfigureAwait(false);
                     if (!_isIntercepting) break;
 
-                    if (HEncoding.WedgieOut.GetId(buffer) == 206)
+                    if (HFormat.WedgieOut.GetId(buffer) == 206)
                     {
-                        HEncoding.WedgieIn.DataBacklog.Clear();
+                        HFormat.WedgieIn.DataBacklog.Clear();
 
-                        Local.Resolver = HEncoding.WedgieOut;
-                        Remote.Resolver = HEncoding.WedgieIn;
+                        Local.InFormat = HFormat.WedgieOut;
+                        Local.OutFormat = HFormat.WedgieIn;
+
+                        Remote.InFormat = HFormat.WedgieIn;
+                        Remote.OutFormat = HFormat.WedgieOut;
                     }
-                    else if (HEncoding.BigEndian.GetId(buffer) == 4000)
+                    else if (HFormat.EvaWire.GetId(buffer) == 4000)
                     {
-                        Local.Resolver = HEncoding.BigEndian;
-                        Remote.Resolver = HEncoding.BigEndian;
+                        Local.InFormat = HFormat.EvaWire;
+                        Local.OutFormat = HFormat.EvaWire;
+
+                        Remote.InFormat = HFormat.EvaWire;
+                        Remote.OutFormat = HFormat.EvaWire;
                     }
                     else
                     {
@@ -150,7 +155,7 @@ namespace Tanji.Network
         }
         public Task<int> SendToServerAsync(HPacket packet)
         {
-            return Remote.SendAsync(packet.ToBytes());
+            return Remote.SendPacketAsync(packet);
         }
         public Task<int> SendToServerAsync(ushort id, params object[] values)
         {
@@ -163,7 +168,7 @@ namespace Tanji.Network
         }
         public Task<int> SendToClientAsync(HPacket packet)
         {
-            return Local.SendAsync(packet.ToBytes());
+            return Local.SendPacketAsync(packet);
         }
         public Task<int> SendToClientAsync(ushort id, params object[] values)
         {
@@ -175,22 +180,15 @@ namespace Tanji.Network
             HPacket packet = await Local.ReceivePacketAsync().ConfigureAwait(false);
             if (packet != null)
             {
-                var args = new DataInterceptedEventArgs(packet, ++_outSteps,
-                    true, InterceptOutgoingAsync, SendToServerAsync);
-
-                if (GameContext != null &&
-                    GameContext.OutMessages.TryGetValue(packet.Id, out MessageItem message))
-                {
-                    args.MessageType = message;
-                }
+                var args = new DataInterceptedEventArgs(packet, ++_outSteps, true,
+                    InterceptOutgoingAsync, SendToServerAsync);
 
                 try { OnDataOutgoing(args); }
                 catch { args.Restore(); }
 
                 if (!args.IsBlocked && !args.WasRelayed)
                 {
-                    await SendToServerAsync(args.Packet)
-                        .ConfigureAwait(false);
+                    await SendToServerAsync(args.Packet).ConfigureAwait(false);
                 }
                 if (!args.HasContinued)
                 {
@@ -204,22 +202,15 @@ namespace Tanji.Network
             HPacket packet = await Remote.ReceivePacketAsync().ConfigureAwait(false);
             if (packet != null)
             {
-                var args = new DataInterceptedEventArgs(packet, ++_inSteps,
-                    false, InterceptIncomingAsync, SendToClientAsync);
-
-                if (GameContext != null &&
-                    GameContext.InMessages.TryGetValue(packet.Id, out MessageItem message))
-                {
-                    args.MessageType = message;
-                }
+                var args = new DataInterceptedEventArgs(packet, ++_inSteps, false,
+                    InterceptIncomingAsync, SendToClientAsync);
 
                 try { OnDataIncoming(args); }
                 catch { args.Restore(); }
 
                 if (!args.IsBlocked && !args.WasRelayed)
                 {
-                    await SendToClientAsync(args.Packet)
-                        .ConfigureAwait(false);
+                    await SendToClientAsync(args.Packet).ConfigureAwait(false);
                 }
                 if (!args.HasContinued)
                 {

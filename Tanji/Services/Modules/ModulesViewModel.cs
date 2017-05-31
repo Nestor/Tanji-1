@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define DEBUG_MODULES
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -75,8 +77,7 @@ namespace Tanji.Services.Modules
 
                 LoadModules();
             }
-
-#if DEBUG
+#if DEBUG_MODULES
             for (int i = 0; i < 10; i++)
             {
                 var module = new ModuleInfo(Assembly_Resolve)
