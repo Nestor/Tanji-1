@@ -132,7 +132,7 @@ namespace Tanji.Services.Connection
 
         private void InjectGameClient(object sender, RequestInterceptedEventArgs e)
         {
-            if (e.Request.RequestUri.Query.EndsWith("-Tanji"))
+            if (e.Request.RequestUri.Query.StartsWith("?Tanji-"))
             {
                 Eavesdropper.RequestIntercepted -= InjectGameClient;
 
@@ -170,7 +170,7 @@ namespace Tanji.Services.Connection
         }
         private void InterceptGameClient(object sender, ResponseInterceptedEventArgs e)
         {
-            if (!e.Response.ResponseUri.Query.EndsWith("-Tanji")) return;
+            if (!e.Response.ResponseUri.Query.StartsWith("?Tanji-")) return;
             if (e.Response.ContentType != "application/x-shockwave-flash") return;
             Eavesdropper.ResponseIntercepted -= InterceptGameClient;
 
@@ -228,7 +228,6 @@ namespace Tanji.Services.Connection
             if (IsAutomaticServerExtraction)
             {
                 string[] ports = App.Master.GameData.InfoPort.Split(',');
-
                 if (ports.Length == 0 ||
                     !ushort.TryParse(ports[0], out ushort port) ||
                     !HotelEndPoint.TryParse(App.Master.GameData.InfoHost, port, out HotelEndPoint endpoint))
@@ -236,12 +235,14 @@ namespace Tanji.Services.Connection
                     Cancel(null);
                     return;
                 }
-
                 HotelServer = endpoint;
             }
 
-            body = body.Replace(App.Master.GameData.InfoHost, "127.0.0.1");
-            body = body.Replace(".swf", $".swf?{DateTime.Now.Ticks}-Tanji");
+            if (App.Master.GameData.Hotel != HHotel.Unknown)
+            {
+                body = body.Replace(App.Master.GameData.InfoHost, "127.0.0.1");
+            }
+            body = body.Replace(".swf", $".swf?Tanji-{DateTime.Now.Ticks}");
 
             Status = SYNCHRONIZING_GAME_DATA;
             App.Master.Synchronize(App.Master.GameData);
@@ -291,7 +292,7 @@ namespace Tanji.Services.Connection
         {
             if (App.Master.Connection.IsConnected)
             {
-                if (MessageBox.Show("Are you sure you want to disconnect from the current session?", "Tanji ~ Alert!",
+                if (MessageBox.Show("Are you sure you want to disconnect from the current session?", "Tanji - Alert!",
                          MessageBoxButton.YesNo,
                          MessageBoxImage.Asterisk) == MessageBoxResult.Yes)
                 {
