@@ -81,6 +81,14 @@ namespace Tangine.Network
         {
             return SendAsync(packet.ToBytes());
         }
+        public Task<int> SendPacketAsync(string signature)
+        {
+            if (OutFormat == null)
+            {
+                throw new NullReferenceException("Outgoing format cannot be null.");
+            }
+            return SendAsync(HPacket.ToBytes(OutFormat, signature));
+        }
         public Task<int> SendPacketAsync(ushort id, params object[] values)
         {
             if (OutFormat == null)

@@ -157,6 +157,10 @@ namespace Tanji.Network
         {
             return Remote.SendPacketAsync(packet);
         }
+        public Task<int> SendToServerAsync(string signature)
+        {
+            return Remote.SendPacketAsync(signature);
+        }
         public Task<int> SendToServerAsync(ushort id, params object[] values)
         {
             return Remote.SendPacketAsync(id, values);
@@ -169,6 +173,10 @@ namespace Tanji.Network
         public Task<int> SendToClientAsync(HPacket packet)
         {
             return Local.SendPacketAsync(packet);
+        }
+        public Task<int> SendToClientAsync(string signature)
+        {
+            return Local.SendPacketAsync(signature);
         }
         public Task<int> SendToClientAsync(ushort id, params object[] values)
         {

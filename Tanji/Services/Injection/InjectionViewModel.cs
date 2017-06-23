@@ -1,10 +1,9 @@
-﻿#define DEBUG_INJECTION
+﻿//#define DEBUG_INJECTION
 
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 
 using Tanji.Helpers;
-using Tangine.Network.Protocol;
 
 namespace Tanji.Services.Injection
 {
@@ -48,12 +47,12 @@ namespace Tanji.Services.Injection
         private async Task SendToClientAsync(object arg)
         {
             AddSignature(PacketSignature);
-            await Task.Delay(100);
+            await App.Master.Connection.SendToClientAsync(PacketSignature);
         }
         private async Task SendToServerAsync(object arg)
         {
             AddSignature(PacketSignature);
-            await Task.Delay(100);
+            await App.Master.Connection.SendToServerAsync(PacketSignature);
         }
 
         private void AddSignature(string signature)
