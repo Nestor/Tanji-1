@@ -95,6 +95,7 @@
       <DependentUpon>ConstructerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\Injection\Constructer\ConstructerViewModel.cs" />
+    <Compile Include="Services\Injection\Constructer\Models\Chunk.cs" />
     <Compile Include="Services\Injection\Filter\FilterView.xaml.cs">
       <DependentUpon>FilterView.xaml</DependentUpon>
     </Compile>

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:c="clr-namespace:Tanji.Controls;assembly="
              xmlns:modules="clr-namespace:Tanji.Services.Modules.Models"
+             xmlns:constructerModels="clr-namespace:Tanji.Services.Injection.Constructer.Models"
              ShutdownMode="OnMainWindowClose"
              StartupUri="Windows/Main/MainView.xaml">
     <Application.Resources>
@@ -689,6 +690,14 @@
                         HorizontalAlignment="Right"
                         Content="{Binding NextStateAction}"/>
             </Grid>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type constructerModels:Chunk}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Formatted}"/>
+                <Separator/>
+                <TextBlock Text="{Binding Value}"/>
+            </StackPanel>
         </DataTemplate>
 
     </Application.Resources>
