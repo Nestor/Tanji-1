@@ -5,7 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Tanji.Services.Injection.Constructer"
              mc:Ignorable="d">
+    <UserControl.DataContext>
+        <local:ConstructerViewModel/>
+    </UserControl.DataContext>
     <Grid Width="397" Height="285">
-        
+        <ListView ItemsSource="{Binding Chunks}"
+                  SelectedItem="{Binding SelectedChunk}"/>
     </Grid>
 </UserControl>
