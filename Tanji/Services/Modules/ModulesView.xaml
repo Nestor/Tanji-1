@@ -4,24 +4,63 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Tanji.Services.Modules"
-             xmlns:ctrls="clr-namespace:Tanji.Controls"
              mc:Ignorable="d">
     <UserControl.DataContext>
         <local:ModulesViewModel/>
     </UserControl.DataContext>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+    </UserControl.Resources>
     <Grid Width="478" Height="318">
         <ListView Margin="0,0,0,25"
-                  BorderThickness="0"
                   ItemsSource="{Binding Modules}"
                   SelectedItem="{Binding SelectedModule}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Foreground" Value="Black"/>
+                    <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                    <Setter Property="ToolTip">
+                        <Setter.Value>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}{0}&#x0a;{1}">
+                                        <Binding Path="Name"/>
+                                        <Binding Path="Description"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView AllowsColumnReorder="False">
+                    <GridView.ColumnHeaderContainerStyle>
+                        <Style TargetType="{x:Type GridViewColumnHeader}">
+                            <Setter Property="IsEnabled" Value="False"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="TextElement.Foreground" Value="Black"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </GridView.ColumnHeaderContainerStyle>
+                    <GridViewColumn Width="110" Header="Name" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Width="205" Header="Description" DisplayMemberBinding="{Binding Description}"/>
+                    <GridViewColumn Width="68" Header="Version" DisplayMemberBinding="{Binding Version}" />
+                    <GridViewColumn Width="68" Header="State" DisplayMemberBinding="{Binding CurrentState}" />
+                </GridView>
+            </ListView.View>
         </ListView>
         <Button Content="Uninstall"
                 Margin="273,298,105,0"
                 Width="100" Height="20"
+                Style="{StaticResource TGButton}"
                 Command="{Binding UninstallCommand}"/>
         <Button Content="Install"
                 Margin="378,298,0,0"
                 Width="100" Height="20"
+                Style="{StaticResource TGButton}"
                 Command="{Binding InstallCommand}"/>
     </Grid>
 </UserControl>

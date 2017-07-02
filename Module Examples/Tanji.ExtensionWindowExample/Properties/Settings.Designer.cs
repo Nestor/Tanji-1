@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Tanji.ExtensionFormExample.Properties
+namespace Tanji.ExtensionWindowExample.Properties
 {
 
 

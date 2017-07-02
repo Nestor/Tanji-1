@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics;
 using System.Windows.Forms;
 using System.ComponentModel;
 using System.Collections.Generic;
@@ -110,7 +111,7 @@ namespace Tanji.Services.Modules
             if (module != null)
             {
                 SelectedModule = module;
-                module.UserInterface?.BringToFront();
+                module.FormUI?.BringToFront();
                 return;
             }
 
@@ -144,6 +145,7 @@ namespace Tanji.Services.Modules
                         }
                         module.Name = moduleAtt.Name;
                         module.Description = moduleAtt.Description;
+                        module.Version = new Version(FileVersionInfo.GetVersionInfo(modulePath).FileVersion);
 
                         var authorAtts = type.GetCustomAttributes<AuthorAttribute>();
                         module.Authors.AddRange(authorAtts);

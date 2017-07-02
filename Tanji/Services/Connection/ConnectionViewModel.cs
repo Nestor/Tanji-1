@@ -159,6 +159,18 @@ namespace Tanji.Services.Connection
                         App.Master.Game.GenerateMessageHashes();
                     }
 
+                    if (IsAutomaticServerExtraction)
+                    {
+                        Tuple<string, int?> endPoint = App.Master.Game.ExtractEndPoint();
+                        if (!string.IsNullOrWhiteSpace(endPoint.Item1) || endPoint.Item2 != null)
+                        {
+                            string host = (!string.IsNullOrWhiteSpace(endPoint.Item1) ?
+                                endPoint.Item1 : HotelServer.Host);
+
+                            HotelServer = HotelEndPoint.Parse(host, endPoint.Item2 ?? HotelServer.Port);
+                        }
+                    }
+
                     Status = SYNCHRONIZING_GAME;
                     App.Master.Synchronize(App.Master.Game);
 
@@ -208,6 +220,7 @@ namespace Tanji.Services.Connection
                     HotelServer = HotelEndPoint.Parse(host, endPoint.Item2 ?? HotelServer.Port);
                 }
             }
+
             if (App.Master.GameData.Hotel == HHotel.Unknown)
             {
                 App.Master.Game.InjectEndPoint("127.0.0.1", HotelServer.Port);

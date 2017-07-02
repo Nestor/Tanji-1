@@ -15,7 +15,8 @@
     <Grid Width="478" Height="318">
         <TabControl Margin="0,0,0,27"
                     Padding="3,3,3,3"
-                    TabStripPlacement="Right">
+                    TabStripPlacement="Right"
+                    Style="{StaticResource TGTabControl}">
             <TabItem Header="Constructer">
                 <constructer:ConstructerView/>
             </TabItem>
@@ -30,7 +31,7 @@
             </TabItem>
         </TabControl>
         <Separator Margin="0,291,0,20"
-                   Background="{StaticResource TJPrimaryBrush}"/>
+                   Background="{StaticResource TGPrimaryBrush}"/>
         <ComboBox Text="{Binding PacketSignature}"
                   Height="20"
                   Padding="0"
@@ -41,10 +42,12 @@
         <Button Content="Send To Client"
                 Height="20"
                 Margin="263,298,110,0"
+                Style="{StaticResource TGButton}"
                 Command="{Binding SendToClientCommand}"/>
         <Button Content="Send To Server"
                 Height="20"
                 Margin="373,298,0,0"
+                Style="{StaticResource TGButton}"
                 Command="{Binding SendToServerCommand}"/>
     </Grid>
 </UserControl>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Tanji.ExtensionExample
+namespace Tanji.ExtensionFormExample
 {
     static class Program
     {

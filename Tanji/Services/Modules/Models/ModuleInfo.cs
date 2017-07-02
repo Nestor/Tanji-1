@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using Tanji.Helpers;
 
 using Tangine.Modules;
+using System.Windows;
 
 namespace Tanji.Services.Modules.Models
 {
@@ -14,10 +15,11 @@ namespace Tanji.Services.Modules.Models
     {
         private readonly ResolveEventHandler _resolverHandler;
 
-        private const string DISPOSE_STATE_ACTION = "Dispose";
-        private const string INITIALIZE_STATE_ACTION = "Initialize";
+        private const string DISPOSED_STATE = "Disposed";
+        private const string INITIALIZED_STATE = "Initialized";
 
         public Type Type { get; set; }
+        public Version Version { get; set; } = new Version(1, 0, 0, 0);
         public Assembly Assembly { get; set; }
 
         public string Name { get; set; }
@@ -27,16 +29,17 @@ namespace Tanji.Services.Modules.Models
         public string Path { get; set; }
         public string Hash { get; set; }
 
-        public Form UserInterface { get; set; }
+        public Form FormUI { get; set; }
+        public Window WindowUI { get; set; }
         public bool IsInitialized => (Instance != null);
 
-        private string _nextStateAction = INITIALIZE_STATE_ACTION;
-        public string NextStateAction
+        private string _currentState = DISPOSED_STATE;
+        public string CurrentState
         {
-            get { return _nextStateAction; }
+            get { return _currentState; }
             set
             {
-                _nextStateAction = value;
+                _currentState = value;
                 RaiseOnPropertyChanged();
             }
         }
@@ -64,11 +67,11 @@ namespace Tanji.Services.Modules.Models
 
         public void Dispose()
         {
-            if (UserInterface != null)
+            if (FormUI != null)
             {
-                UserInterface.FormClosed -= UserInterface_Closed;
-                UserInterface.Close();
-                UserInterface = null;
+                FormUI.FormClosed -= UserInterface_Closed;
+                FormUI.Close();
+                FormUI = null;
             }
             else if (Instance != null)
             {
@@ -76,13 +79,14 @@ namespace Tanji.Services.Modules.Models
             }
 
             Instance = null;
-            NextStateAction = INITIALIZE_STATE_ACTION;
+            CurrentState = DISPOSED_STATE;
         }
         public void Initialize()
         {
             if (Instance != null)
             {
-                UserInterface?.BringToFront();
+                FormUI?.BringToFront();
+                WindowUI?.Activate();
                 return;
             }
             try
@@ -100,11 +104,20 @@ namespace Tanji.Services.Modules.Models
                     Instance.Synchronize(App.Master.GameData);
                 }
 
-                UserInterface = (Instance as Form);
-                if (UserInterface != null)
+                FormUI = (Instance as Form);
+                if (FormUI != null)
                 {
-                    UserInterface.Show();
-                    UserInterface.FormClosed += UserInterface_Closed;
+                    FormUI.Show();
+                    FormUI.FormClosed += UserInterface_Closed;
+                }
+                else
+                {
+                    WindowUI = (Instance as Window);
+                    if (WindowUI != null)
+                    {
+                        WindowUI.Show();
+                        WindowUI.Closed += UserInterface_Closed;
+                    }
                 }
             }
             catch { Dispose(); }
@@ -112,34 +125,42 @@ namespace Tanji.Services.Modules.Models
             {
                 if (Instance != null)
                 {
-                    NextStateAction = DISPOSE_STATE_ACTION;
+                    CurrentState = INITIALIZED_STATE;
                 }
                 AppDomain.CurrentDomain.AssemblyResolve -= _resolverHandler;
             }
         }
         public void ToggleState(object obj)
         {
-            switch (NextStateAction)
+            switch (CurrentState)
             {
-                case INITIALIZE_STATE_ACTION:
-                {
-                    Initialize();
-                    NextStateAction = DISPOSE_STATE_ACTION;
-                    break;
-                }
-                case DISPOSE_STATE_ACTION:
+                case INITIALIZED_STATE:
                 {
                     Dispose();
-                    NextStateAction = INITIALIZE_STATE_ACTION;
+                    CurrentState = DISPOSED_STATE;
+                    break;
+                }
+                case DISPOSED_STATE:
+                {
+                    Initialize();
+                    CurrentState = INITIALIZED_STATE;
                     break;
                 }
             }
         }
 
-        private void UserInterface_Closed(object sender, FormClosedEventArgs e)
+        private void UserInterface_Closed(object sender, EventArgs e)
         {
-            UserInterface.FormClosed -= UserInterface_Closed;
-            UserInterface = null;
+            if (FormUI != null)
+            {
+                FormUI.FormClosed -= UserInterface_Closed;
+                FormUI = null;
+            }
+            if (WindowUI != null)
+            {
+                WindowUI.Closed -= UserInterface_Closed;
+                WindowUI = null;
+            }
             Dispose();
         }
     }

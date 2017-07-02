@@ -1,0 +1,16 @@
+﻿<tapi:ExtensionWindow x:Class="Tanji.ExtensionWindowExample.MainWindow"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:tapi="clr-namespace:Tangine.Modules;assembly=Tangine"
+                      mc:Ignorable="d"
+                      ResizeMode="CanMinimize"
+                      UseLayoutRounding="True"
+                      Title="Window Extension"
+                      SizeToContent="WidthAndHeight"
+                      WindowStartupLocation="CenterScreen">
+    <Grid Width="485" Height="357">
+        <Button Style="{StaticResource TJButton}" Width="100" Height="20" Content="Test Button"/>
+    </Grid>
+</tapi:ExtensionWindow>

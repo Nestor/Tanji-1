@@ -76,7 +76,6 @@
     <Compile Include="Controls\HPacketLogger.Designer.cs">
       <DependentUpon>HPacketLogger.cs</DependentUpon>
     </Compile>
-    <Compile Include="Controls\LabelBox.cs" />
     <Compile Include="Helpers\AsyncCommand.cs" />
     <Compile Include="Helpers\Converters\BooleanOrConverter.cs" />
     <Compile Include="Helpers\Converters\HotelEndPointConverter.cs" />

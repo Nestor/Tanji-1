@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:c="clr-namespace:Tanji.Helpers.Converters"
              xmlns:local="clr-namespace:Tanji.Services.Connection"
-             xmlns:ctrls="clr-namespace:Tanji.Controls"
+             xmlns:ctrls="clr-namespace:Tangine.Controls;assembly=Tangine"
              mc:Ignorable="d">
     <UserControl.DataContext>
         <local:ConnectionViewModel x:Name="vm"/>
@@ -15,6 +15,7 @@
                         Margin="0,0,176,298"
                         TextAlignment="Center"
                         IsReadOnlyCaretVisible="True"
+                        Style="{StaticResource TGLabelBox}"
                         Text="{Binding HotelServer, Converter={c:HotelEndPointConverter}}">
             <TextBoxBase.IsReadOnly>
                 <MultiBinding Converter="{c:BooleanOrConverter}">
@@ -30,43 +31,52 @@
                   IsChecked="{Binding IsAutomaticServerExtraction}"
                   IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
         <Separator Margin="0,20,0,291"
-                   Background="{StaticResource TJPrimaryBrush}"/>
+                   Background="{StaticResource TGPrimaryBrush}"/>
         <Button Content="Destroy Certificates"
                 Height="20"
                 Margin="205,246,118,52"
+                Style="{StaticResource TGButton}"
                 Command="{Binding DestroyCertificatesCommand}"
                 IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
         <Button Content="Export Certificate Authority"
                 Height="20"
                 Margin="0,246,278,52"
+                Style="{StaticResource TGButton}"
                 Command="{Binding ExportCertificateAuthorityCommand}"/>
         <ctrls:LabelBox Title="Proxy Port"
                         Height="20"
                         Margin="365,246,0,52"
                         Text="{Binding ProxyPort}"
                         IsReadOnlyCaretVisible="True"
+                        Style="{StaticResource TGLabelBox}"
                         IsReadOnly="{Binding IsConnecting}"/>
         <ctrls:LabelBox Title="Custom Client"
                         Margin="0,271,95,27"
                         TextAlignment="Center"
                         IsReadOnlyCaretVisible="True"
                         Text="{Binding CustomClientPath}"
+                        Style="{StaticResource TGLabelBox}"
                         IsReadOnly="{Binding IsConnecting}"/>
         <Button Content="Browse"
                 Margin="388,271,0,27"
+                Style="{StaticResource TGButton}"
                 Command="{Binding BrowseCommand}"
                 IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
         <Separator Margin="0,291,0,20"
-                   Background="{StaticResource TJPrimaryBrush}"/>
+                   Background="{StaticResource TGPrimaryBrush}"/>
         <Label Content="{Binding Status}"
                Margin="0,298,190,0"
+               Style="{StaticResource TGLabel}"
                IsEnabled="{Binding IsConnecting}"/>
+        <Separator Margin="57,27,147,147" Width="10"/>
         <Button Content="Cancel"
                 Margin="293,298,95,0"
+                Style="{StaticResource TGButton}"
                 Command="{Binding CancelCommand}"
                 IsEnabled="{Binding IsConnecting}"/>
         <Button Content="Connect"
                 Margin="388,298,0,0"
+                Style="{StaticResource TGButton}"
                 Command="{Binding ConnectCommand}"
                 IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
     </Grid>

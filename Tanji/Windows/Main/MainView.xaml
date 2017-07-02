@@ -21,7 +21,8 @@
         <local:MainViewModel/>
     </Window.DataContext>
     <Grid Width="485" Height="357">
-        <TabControl Padding="3,6,3,3">
+        <TabControl Padding="3,6,3,3"
+                    Style="{StaticResource TGTabControl}">
             <TabItem Header="Connection">
                 <connection:ConnectionView/>
             </TabItem>

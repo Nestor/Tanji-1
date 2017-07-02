@@ -1,4 +1,4 @@
-﻿namespace Tanji.ExtensionExample
+﻿namespace Tanji.ExtensionFormExample
 {
     partial class MainFrm
     {
