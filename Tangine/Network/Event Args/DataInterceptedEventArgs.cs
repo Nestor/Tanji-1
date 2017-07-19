@@ -13,9 +13,9 @@ namespace Tangine.Network
         private readonly byte[] _ogData;
         private readonly string _ogString;
         private readonly object _continueLock;
-        private readonly Func<Task> _continuation;
         private readonly DataInterceptedEventArgs _args;
-        private readonly Func<HPacket, Task<int>> _relayer;
+        private readonly Func<DataInterceptedEventArgs, Task<int>> _relayer;
+        private readonly Func<DataInterceptedEventArgs, Task> _continuation;
 
         public int Step { get; }
         public bool IsOutgoing { get; }
@@ -109,13 +109,13 @@ namespace Tangine.Network
             IsOutgoing = isOutgoing;
             Timestamp = DateTime.Now;
         }
-        public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing, Func<Task> continuation)
+        public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing, Func<DataInterceptedEventArgs, Task> continuation)
             : this(packet, step, isOutgoing)
         {
             _continueLock = new object();
             _continuation = continuation;
         }
-        public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing, Func<Task> continuation, Func<HPacket, Task<int>> relayer)
+        public DataInterceptedEventArgs(HPacket packet, int step, bool isOutgoing, Func<DataInterceptedEventArgs, Task> continuation, Func<DataInterceptedEventArgs, Task<int>> relayer)
             : this(packet, step, isOutgoing, continuation)
         {
             _relayer = relayer;
@@ -133,14 +133,19 @@ namespace Tangine.Network
                 {
                     if (relay)
                     {
-                        _relayer(Packet);
                         WasRelayed = true;
+                        _relayer?.Invoke(this);
                     }
 
-                    _continuation();
                     HasContinued = true;
+                    _continuation(this);
                 }
             }
+        }
+
+        public byte[] GetOriginalData()
+        {
+            return _ogData;
         }
 
         /// <summary>
