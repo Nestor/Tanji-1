@@ -77,9 +77,13 @@ namespace Tangine.Habbo
             }
         }
 
+        public string Location { get; set; }
+
         public HGame(string path)
             : this(File.OpenRead(path))
-        { }
+        {
+            Location = path;
+        }
         public HGame(byte[] data)
             : this(new MemoryStream(data))
 
