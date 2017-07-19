@@ -101,8 +101,6 @@ namespace Tanji.Network
 
                     if (HFormat.WedgieOut.GetId(buffer) == 206)
                     {
-                        HFormat.WedgieIn.DataBacklog.Clear();
-
                         Local.InFormat = HFormat.WedgieOut;
                         Local.OutFormat = HFormat.WedgieIn;
 
@@ -145,7 +143,7 @@ namespace Tanji.Network
                     }
                 }
             }
-            HNode.StopListeners();
+            HNode.StopListeners(endpoint.Port);
             _isIntercepting = false;
         }
 
@@ -183,13 +181,21 @@ namespace Tanji.Network
             return Local.SendPacketAsync(id, values);
         }
 
-        private async Task InterceptOutgoingAsync()
+        private Task<int> ClientRelayer(DataInterceptedEventArgs relayedFrom)
+        {
+            return SendToClientAsync(relayedFrom.Packet);
+        }
+        private Task<int> ServerRelayer(DataInterceptedEventArgs relayedFrom)
+        {
+            return SendToServerAsync(relayedFrom.Packet);
+        }
+        private async Task InterceptOutgoingAsync(DataInterceptedEventArgs continuedFrom = null)
         {
             HPacket packet = await Local.ReceivePacketAsync().ConfigureAwait(false);
             if (packet != null)
             {
                 var args = new DataInterceptedEventArgs(packet, ++_outSteps, true,
-                    InterceptOutgoingAsync, SendToServerAsync);
+                    InterceptOutgoingAsync, ServerRelayer);
 
                 try { OnDataOutgoing(args); }
                 catch { args.Restore(); }
@@ -205,13 +211,13 @@ namespace Tanji.Network
             }
             else Disconnect();
         }
-        private async Task InterceptIncomingAsync()
+        private async Task InterceptIncomingAsync(DataInterceptedEventArgs continuedFrom = null)
         {
             HPacket packet = await Remote.ReceivePacketAsync().ConfigureAwait(false);
             if (packet != null)
             {
                 var args = new DataInterceptedEventArgs(packet, ++_inSteps, false,
-                    InterceptIncomingAsync, SendToClientAsync);
+                    InterceptIncomingAsync, ClientRelayer);
 
                 try { OnDataIncoming(args); }
                 catch { args.Restore(); }
