@@ -2,7 +2,7 @@
 
 namespace Tanji.ServiceExample
 {
-    [Module("Service Example", "Module example showing how to create a valid service(no-UI) for Tanji.")]
+    [Module("Service Example", "Module example showing how to create a valid service for Tanji.")]
     public class Program : TService
     {
         public Program(string[] args)

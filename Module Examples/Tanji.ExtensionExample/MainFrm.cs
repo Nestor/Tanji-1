@@ -5,7 +5,7 @@ using Tangine.Network;
 
 namespace Tanji.ExtensionFormExample
 {
-    [Module("Form Extension Example", "Module example showing how to create a valid Form extension(UI) for Tanji.")]
+    [Module("Form Extension Example", "Module example showing how to create a valid Form extension for Tanji.")]
     public partial class MainFrm : ExtensionForm
     {
         public MainFrm()
