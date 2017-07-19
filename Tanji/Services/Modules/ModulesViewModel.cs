@@ -1,12 +1,13 @@
-﻿//#define DEBUG_MODULES
-
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Net.Sockets;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Collections.Specialized;
@@ -18,10 +19,11 @@ using Tanji.Services.Modules.Models;
 using Tangine.Habbo;
 using Tangine.Modules;
 using Tangine.Network;
+using Tangine.Network.Protocol;
 
 namespace Tanji.Services.Modules
 {
-    public class ModulesViewModel : ObservableObject, ISynchronizer, IReceiver, IHaltable
+    public class ModulesViewModel : ObservableObject, IReceiver, IHaltable, ISynchronizer
     {
         private ModuleInfo[] _safeModules;
 
@@ -49,8 +51,6 @@ namespace Tanji.Services.Modules
             }
         }
 
-        public int RemoteModulePort { get; } = TService.REMOTE_MODULE_PORT;
-
         static ModulesViewModel()
         {
             _iModuleType = typeof(IModule);
@@ -71,24 +71,84 @@ namespace Tanji.Services.Modules
             Modules = new ObservableCollection<ModuleInfo>();
             Modules.CollectionChanged += Modules_CollectionChanged;
 
-            if (App.Master != null) // Stop it from attemping to create these directories in the designer.
+            if (App.Master != null)
             {
                 ModulesDirectory = Directory.CreateDirectory("Installed Modules");
                 DependenciesDirectory = ModulesDirectory.CreateSubdirectory("Dependencies");
 
                 LoadModules();
+
+                var listener = new TcpListener(IPAddress.Any, TService.REMOTE_MODULE_PORT);
+                listener.Start();
+
+                Task captureModulesTask = CaptureModulesAsync(listener);
             }
-#if DEBUG_MODULES
-            for (int i = 0; i < 10; i++)
+        }
+
+        private async Task HandleModuleDataAsync(ModuleInfo module)
+        {
+            try
             {
-                var module = new ModuleInfo(Assembly_Resolve)
+                while (module.Node.IsConnected)
                 {
-                    Name = $"Test Module #{i}",
-                    Description = $"Test Description #{i}"
-                };
-                Modules.Add(module);
+                    HPacket packet = await module.Node.ReceivePacketAsync().ConfigureAwait(false);
+                    switch (packet.Id)
+                    {
+                        case 1:
+                        {
+                            string identifier = packet.ReadUTF8();
+                            TaskCompletionSource<HPacket> handledDataSource = null;
+                            if (module.DataAwaiters.TryGetValue(identifier, out handledDataSource))
+                            {
+                                handledDataSource.SetResult(packet);
+                            }
+                            else Debugger.Break();
+                            break;
+                        }
+                        case 2:
+                        {
+                            break;
+                        }
+                    }
+                }
             }
-#endif
+            finally
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    module.Dispose();
+                    Modules.Remove(module);
+                });
+            }
+        }
+        private async Task CaptureModulesAsync(TcpListener listener)
+        {
+            try
+            {
+                HNode moduleNode = new HNode(await listener.AcceptSocketAsync());
+
+                moduleNode.InFormat = HFormat.EvaWire;
+                moduleNode.OutFormat = HFormat.EvaWire;
+                HPacket infoPacket = await moduleNode.ReceivePacketAsync();
+
+                var module = new ModuleInfo(moduleNode);
+                module.PropertyChanged += Module_PropertyChanged;
+
+                module.Version = Version.Parse(infoPacket.ReadUTF8());
+                module.Name = infoPacket.ReadUTF8();
+                module.Description = infoPacket.ReadUTF8();
+
+                module.Authors.Capacity = infoPacket.ReadInt32();
+                for (int i = 0; i < module.Authors.Capacity; i++)
+                {
+                    module.Authors.Add(new AuthorAttribute(infoPacket.ReadUTF8()));
+                }
+                Modules.Add(module);
+
+                module.Initialize();
+                Task handleModuleDataTask = HandleModuleDataAsync(module);
+            }
+            finally { Task captureModulesAsync = CaptureModulesAsync(listener); }
         }
 
         private void Install(object obj)
@@ -175,7 +235,10 @@ namespace Tanji.Services.Modules
         }
         private bool CanUninstall(object obj)
         {
-            return (SelectedModule != null);
+            if (SelectedModule == null) return false;
+            if (SelectedModule.Instance?.IsStandalone ?? false) return false;
+
+            return true;
         }
 
         public ModuleInfo GetModule(string hash)
@@ -229,9 +292,9 @@ namespace Tanji.Services.Modules
             }
             return copiedFilePath;
         }
-        private void CopyDependencies(string filePath, Assembly fileAsm)
+        private void CopyDependencies(string path, Assembly assembly)
         {
-            AssemblyName[] references = fileAsm.GetReferencedAssemblies();
+            AssemblyName[] references = assembly.GetReferencedAssemblies();
             var fileReferences = new Dictionary<string, AssemblyName>(references.Length);
             foreach (AssemblyName reference in references)
             {
@@ -242,7 +305,7 @@ namespace Tanji.Services.Modules
                 .Select(a => a.GetName().Name)
                 .ToArray();
 
-            var sourceDirectory = new DirectoryInfo(Path.GetDirectoryName(filePath));
+            var sourceDirectory = new DirectoryInfo(Path.GetDirectoryName(path));
             IEnumerable<string> missingAssemblies = fileReferences.Keys.Except(loadedAssemblies);
             foreach (string missingAssembly in missingAssemblies)
             {
@@ -300,22 +363,6 @@ namespace Tanji.Services.Modules
             _safeModules = Modules.ToArray();
         }
 
-        #region ISynchronizer Implementation
-        public void Synchronize(HGame game)
-        {
-            foreach (ModuleInfo module in GetInitializedModules())
-            {
-                module.Instance.Synchronize(game);
-            }
-        }
-        public void Synchronize(HGameData gameData)
-        {
-            foreach (ModuleInfo module in GetInitializedModules())
-            {
-                module.Instance.Synchronize(gameData);
-            }
-        }
-        #endregion
         #region IReceiver Implementation
         public bool IsReceiving { get; private set; }
         public void HandleOutgoing(DataInterceptedEventArgs e)
@@ -356,6 +403,22 @@ namespace Tanji.Services.Modules
         { }
         public void Restore()
         { }
+        #endregion
+        #region ISynchronizer Implementation
+        public void Synchronize(HGame game)
+        {
+            foreach (ModuleInfo module in GetInitializedModules())
+            {
+                module.Instance.Synchronize(game);
+            }
+        }
+        public void Synchronize(HGameData gameData)
+        {
+            foreach (ModuleInfo module in GetInitializedModules())
+            {
+                module.Instance.Synchronize(gameData);
+            }
+        }
         #endregion
     }
 }

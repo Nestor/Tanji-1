@@ -1,22 +1,29 @@
 ﻿using System;
+using System.Linq;
+using System.Windows;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 using Tanji.Helpers;
 
+using Tangine.Habbo;
 using Tangine.Modules;
-using System.Windows;
+using Tangine.Network;
+using Tangine.Network.Protocol;
 
 namespace Tanji.Services.Modules.Models
 {
     public class ModuleInfo : ObservableObject
     {
-        private readonly ResolveEventHandler _resolverHandler;
+        private readonly ResolveEventHandler _assemblyResolver;
 
         private const string DISPOSED_STATE = "Disposed";
         private const string INITIALIZED_STATE = "Initialized";
+
+        public Dictionary<string, TaskCompletionSource<HPacket>> DataAwaiters { get; }
 
         public Type Type { get; set; }
         public Version Version { get; set; } = new Version(1, 0, 0, 0);
@@ -26,6 +33,7 @@ namespace Tanji.Services.Modules.Models
         public string Description { get; set; }
         public List<AuthorAttribute> Authors { get; }
 
+        public HNode Node { get; set; }
         public string Path { get; set; }
         public string Hash { get; set; }
 
@@ -57,12 +65,21 @@ namespace Tanji.Services.Modules.Models
 
         public Command ToggleStateCommand { get; }
 
-        public ModuleInfo(ResolveEventHandler assemblyResolver)
+        private ModuleInfo()
         {
-            _resolverHandler = assemblyResolver;
-
             Authors = new List<AuthorAttribute>();
             ToggleStateCommand = new Command(ToggleState);
+            DataAwaiters = new Dictionary<string, TaskCompletionSource<HPacket>>();
+        }
+        public ModuleInfo(HNode node)
+            : this()
+        {
+            Node = node;
+        }
+        public ModuleInfo(ResolveEventHandler assemblyResolver)
+            : this()
+        {
+            _assemblyResolver = assemblyResolver;
         }
 
         public void Dispose()
@@ -78,6 +95,12 @@ namespace Tanji.Services.Modules.Models
                 Instance.Dispose();
             }
 
+            IEnumerable<TaskCompletionSource<HPacket>> handledDataSources = DataAwaiters.Values.ToArray();
+            foreach (TaskCompletionSource<HPacket> handledDataSource in handledDataSources)
+            {
+                handledDataSource.SetResult(null);
+            }
+
             Instance = null;
             CurrentState = DISPOSED_STATE;
         }
@@ -91,12 +114,19 @@ namespace Tanji.Services.Modules.Models
             }
             try
             {
-                AppDomain.CurrentDomain.AssemblyResolve += _resolverHandler;
-                Instance = (IModule)FormatterServices.GetUninitializedObject(Type);
-                Instance.Installer = App.Master;
+                AppDomain.CurrentDomain.AssemblyResolve += _assemblyResolver;
+                if (Type != null)
+                {
+                    Instance = (IModule)FormatterServices.GetUninitializedObject(Type);
+                }
+                else Instance = new DummyModule(this);
 
-                ConstructorInfo moduleConstructor = Type.GetConstructor(Type.EmptyTypes);
-                moduleConstructor.Invoke(Instance, null);
+                Instance.Installer = App.Master;
+                if (Type != null)
+                {
+                    ConstructorInfo moduleConstructor = Type.GetConstructor(Type.EmptyTypes);
+                    moduleConstructor.Invoke(Instance, null);
+                }
 
                 if (App.Master.Connection.IsConnected)
                 {
@@ -127,7 +157,7 @@ namespace Tanji.Services.Modules.Models
                 {
                     CurrentState = INITIALIZED_STATE;
                 }
-                AppDomain.CurrentDomain.AssemblyResolve -= _resolverHandler;
+                AppDomain.CurrentDomain.AssemblyResolve -= _assemblyResolver;
             }
         }
         public void ToggleState(object obj)
@@ -137,13 +167,11 @@ namespace Tanji.Services.Modules.Models
                 case INITIALIZED_STATE:
                 {
                     Dispose();
-                    CurrentState = DISPOSED_STATE;
                     break;
                 }
                 case DISPOSED_STATE:
                 {
                     Initialize();
-                    CurrentState = INITIALIZED_STATE;
                     break;
                 }
             }
@@ -162,6 +190,90 @@ namespace Tanji.Services.Modules.Models
                 WindowUI = null;
             }
             Dispose();
+        }
+
+        private class DummyModule : IModule
+        {
+            private readonly ModuleInfo _module;
+
+            public bool IsStandalone => true;
+            public IInstaller Installer { get; set; }
+
+            public DummyModule(ModuleInfo module)
+            {
+                _module = module;
+            }
+
+            private void HandleData(DataInterceptedEventArgs e)
+            {
+                string identifier = e.Timestamp.Ticks.ToString();
+                identifier += e.IsOutgoing;
+                identifier += e.Step;
+                try
+                {
+                    var interceptedData = new EvaWirePacket(1);
+                    interceptedData.Write(identifier);
+
+                    interceptedData.Write(e.Step);
+                    interceptedData.Write(e.IsOutgoing);
+                    interceptedData.Write(e.Packet.Format.Name);
+                    interceptedData.Write(e.IsContinuable && !e.HasContinued);
+
+                    interceptedData.Write(e.GetOriginalData().Length);
+                    interceptedData.Write(e.GetOriginalData());
+
+                    interceptedData.Write(e.IsOriginal);
+                    if (!e.IsOriginal)
+                    {
+                        byte[] curPacketData = e.Packet.ToBytes();
+                        interceptedData.Write(curPacketData.Length);
+                        interceptedData.Write(curPacketData);
+                    }
+
+                    _module.DataAwaiters.Add(identifier, new TaskCompletionSource<HPacket>());
+                    _module.Node.SendPacketAsync(interceptedData);
+
+                    HPacket handledDataPacket = _module.DataAwaiters[identifier].Task.Result;
+                    if (handledDataPacket == null) return;
+                    // This packet contains the identifier at the start, although we do not read it here.
+
+                    bool isContinuing = handledDataPacket.ReadBoolean();
+                    if (isContinuing)
+                    {
+                        _module.DataAwaiters[identifier] = new TaskCompletionSource<HPacket>();
+
+                        bool wasRelayed = handledDataPacket.ReadBoolean();
+                        e.Continue(wasRelayed);
+
+                        if (wasRelayed) return; // We have nothing else to do here, packet has already been sent/relayed.
+                        handledDataPacket = _module.DataAwaiters[identifier].Task.Result;
+                        isContinuing = handledDataPacket.ReadBoolean(); // We can ignore this one.
+                    }
+                    
+                    int newPacketLength = handledDataPacket.ReadInt32();
+                    byte[] newPacketData = handledDataPacket.ReadBytes(newPacketLength);
+
+                    e.Packet = e.Packet.Format.CreatePacket(newPacketData);
+                    e.IsBlocked = handledDataPacket.ReadBoolean();
+                }
+                finally { _module.DataAwaiters.Remove(identifier); }
+            }
+            public void HandleOutgoing(DataInterceptedEventArgs e) => HandleData(e);
+            public void HandleIncoming(DataInterceptedEventArgs e) => HandleData(e);
+
+            public void Synchronize(HGame game)
+            {
+                _module.Node.SendPacketAsync(3, game.Location);
+            }
+            public void Synchronize(HGameData gameData)
+            {
+                _module.Node.SendPacketAsync(4, gameData.Source);
+            }
+            
+            public void Dispose()
+            {
+                _module.Node.Dispose();
+            }
         }
     }
 }
