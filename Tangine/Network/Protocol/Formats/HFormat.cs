@@ -8,6 +8,7 @@ namespace Tangine.Network.Protocol
     {
         protected bool IsOutgoing { get; }
 
+        public abstract string Name { get; }
         public abstract int IdPosition { get; }
 
         public static EvaWireFormat EvaWire { get; }
@@ -107,17 +108,22 @@ namespace Tangine.Network.Protocol
                     case TypeCode.String: body.AddRange(GetBytes((string)value)); break;
                     default:
                     {
-                        var data = (value as IList<byte>);
-                        if (data == null)
+                        IList<byte> blob = null;
+                        switch (value)
                         {
-                            var hData = (value as IHabboData);
-                            data = hData?.ToBytes();
+                            case IList<byte> data:
+                            blob = data;
+                            break;
+
+                            case IHabboData data:
+                            blob = data.ToBytes();
+                            break;
                         }
-                        if (data == null)
+                        if (blob == null)
                         {
                             throw new NullReferenceException($"Unable to convert '{value.GetType().Name}' to byte[].");
                         }
-                        body.AddRange(data);
+                        body.AddRange(blob);
                         break;
                     }
                 }
@@ -137,5 +143,17 @@ namespace Tangine.Network.Protocol
 
         public abstract HPacket CreatePacket(IList<byte> data);
         public abstract HPacket CreatePacket(ushort id, params object[] values);
+
+        public static HFormat GetFormat(string name)
+        {
+            switch (name)
+            {
+                case "EVWIRE": return EvaWire;
+                case "WEDGIE-IN": return WedgieIn;
+                case "WEDGIE-OUT": return WedgieOut;
+
+                default: return null;
+            }
+        }
     }
 }

@@ -7,16 +7,16 @@ namespace Tangine.Network.Protocol
 {
     public class WedgieFormat : HFormat
     {
-        public List<byte> DataBacklog { get; }
+        private readonly Dictionary<HNode, List<byte>> _dataCrumbs;
+
         public override int IdPosition { get; }
+        public override string Name => (IsOutgoing ? "WEDGIE-OUT" : "WEDGIE-IN");
 
         public WedgieFormat(bool isOutgoing)
             : base(isOutgoing)
         {
-            if (!isOutgoing)
-            {
-                DataBacklog = new List<byte>(512);
-            }
+            _dataCrumbs = new Dictionary<HNode, List<byte>>();
+
             IdPosition = (isOutgoing ? 3 : 0);
         }
 
@@ -214,8 +214,15 @@ namespace Tangine.Network.Protocol
             }
             else
             {
+                List<byte> dataCrumb = null;
+                if (!_dataCrumbs.TryGetValue(node, out dataCrumb))
+                {
+                    dataCrumb = new List<byte>();
+                    _dataCrumbs.Add(node, dataCrumb);
+                }
+
                 int nullBytesReadCount = 0;
-                data = AttemptStitchBuffer();
+                data = AttemptStitchBuffer(dataCrumb);
                 if (data == null)
                 {
                     byte[] idBlock = await node.PeekAsync(2).ConfigureAwait(false);
@@ -235,8 +242,8 @@ namespace Tangine.Network.Protocol
                         }
 
                         nullBytesReadCount = 0;
-                        DataBacklog.AddRange(block);
-                        data = AttemptStitchBuffer();
+                        dataCrumb.AddRange(block);
+                        data = AttemptStitchBuffer(dataCrumb);
                     }
                     while (data == null);
                 }
@@ -271,17 +278,17 @@ namespace Tangine.Network.Protocol
             return new WedgiePacket(IsOutgoing, id, values);
         }
 
-        private byte[] AttemptStitchBuffer()
+        private byte[] AttemptStitchBuffer(List<byte> dataCrumb)
         {
             byte[] data = null;
-            int blockEndIndex = DataBacklog.IndexOf(1);
+            int blockEndIndex = dataCrumb.IndexOf(1);
             if (blockEndIndex != -1)
             {
                 int length = (blockEndIndex + 1);
                 data = new byte[length];
 
-                DataBacklog.CopyTo(0, data, 0, length);
-                DataBacklog.RemoveRange(0, length);
+                dataCrumb.CopyTo(0, data, 0, length);
+                dataCrumb.RemoveRange(0, length);
             }
             return data;
         }

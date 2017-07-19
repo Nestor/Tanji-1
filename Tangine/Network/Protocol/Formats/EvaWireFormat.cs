@@ -8,6 +8,7 @@ namespace Tangine.Network.Protocol
     public class EvaWireFormat : HFormat
     {
         public override int IdPosition => 4;
+        public override string Name => "EVWIRE";
 
         public EvaWireFormat()
             : base(false)
