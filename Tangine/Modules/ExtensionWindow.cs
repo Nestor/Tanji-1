@@ -9,31 +9,16 @@ namespace Tangine.Modules
     {
         private readonly TService _service;
 
-        private IInstaller _installer;
-        IInstaller IModule.Installer
-        {
-            get => (_service?.Installer ?? _installer);
-            set
-            {
-                _installer = value;
-                if (_service != null)
-                {
-                    _service.Installer = value;
-                }
-            }
-        }
-
-        public HGame Game => _service.Installer.Game;
-        public HGameData GameData => _service.Installer.GameData;
-        public IHConnection Connection => _service.Installer.Connection;
-
+        public IInstaller Installer { get; set; }
+        public virtual bool IsStandalone { get; }
+        
+        public HGame Game => Installer.Game;
+        public HGameData GameData => Installer.GameData;
+        public IHConnection Connection => Installer.Connection;
+        
         public ExtensionWindow()
-            : this(null)
-        { }
-        public ExtensionWindow(TService service)
         {
-            _service = (service ?? new ExtensionService(this));
-            _service.Installer = _installer;
+            _service = new TService(this);
         }
 
         void IModule.Synchronize(HGame game)
@@ -74,12 +59,5 @@ namespace Tangine.Modules
         }
         public virtual void Dispose(bool disposing)
         { }
-
-        private sealed class ExtensionService : TService
-        {
-            public ExtensionService(object container)
-                : base(container)
-            { }
-        }
     }
 }
