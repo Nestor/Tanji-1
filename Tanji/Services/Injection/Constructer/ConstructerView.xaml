@@ -3,88 +3,81 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:ctrls="clr-namespace:Tangine.Controls;assembly=Tangine"
              xmlns:local="clr-namespace:Tanji.Services.Injection.Constructer"
              mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style x:Key="ItemActionStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="LightGray"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   FontFamily="{TemplateBinding FontFamily}"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="WhiteSmoke"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard Storyboard.TargetProperty="Foreground.Color">
+                                            <ColorAnimation Duration="0:0:0.2" To="{StaticResource TGPrimaryLightColor}"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard Storyboard.TargetProperty="Foreground.Color">
+                                            <ColorAnimation Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <UserControl.DataContext>
         <local:ConstructerViewModel/>
     </UserControl.DataContext>
-    <Grid Margin="0" Width="397" Height="285">
-
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="3"/>
-            <ColumnDefinition/>
-            <ColumnDefinition Width="3"/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="125"/>
-            <RowDefinition Height="3"/>
-            <RowDefinition Height="19"/>
-            <RowDefinition Height="3"/>
-            <RowDefinition Height="19"/>
-            <RowDefinition Height="3"/>
-            <RowDefinition Height="19"/>
-            <RowDefinition Height="3"/>
-            <RowDefinition Height="19"/>
-            <RowDefinition Height="3"/>
-            <RowDefinition Height="19"/>
-        </Grid.RowDefinitions>
-
+    <Grid Width="397" Height="285">
         <ListView ItemsSource="{Binding Chunks}"
-                  Grid.ColumnSpan="50"
-                  BorderThickness="0,0,0,0"
-                  SelectedItem="{Binding SelectedChunk}">
+                  Margin="0,0,0,127"
+                  BorderThickness="0">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid>
+                    <Grid MaxWidth="378">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="360"/>
-                            <ColumnDefinition Width="10*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <ctrls:LabelBox Title="{Binding Type}"
+                        <ctrls:LabelBox x:Name="box"
                                         TitleWidth="60"
-                                        Text="{Binding Value}"
-                                        Style="{StaticResource TGLabelBox}"/>
-                        <TextBlock Text="✖"
-                                   Grid.Column="2"
-                                   Margin="0,0,0,0"
-                                   x:Name="removeBlock"
-                                   TextAlignment="Center"
-                                   FontFamily="Segoe UI Symbol">
-                            <TextBlock.InputBindings>
-                                <MouseBinding MouseAction="LeftClick"
-                                              CommandParameter="{Binding ElementName=removeBlock, Path=DataContext}"
-                                              Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ConstructerView}}}"/>
-                            </TextBlock.InputBindings>
-                            <TextBlock.Style>
-                                <Style>
-                                    <Setter Property="TextBlock.Foreground" Value="Gray"/>
-                                    <Style.Triggers>
-                                        <Trigger Property="TextBlock.IsMouseOver" Value="True">
-                                            <Trigger.EnterActions>
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
-                                                                        Duration="0:0:0.5"
-                                                                        To="Red"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </Trigger.EnterActions>
-                                            <Trigger.ExitActions>
-                                                <BeginStoryboard>
-                                                    <Storyboard>
-                                                        <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
-                                                                        Duration="0:0:0.5"/>
-                                                    </Storyboard>
-                                                </BeginStoryboard>
-                                            </Trigger.ExitActions>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                                        IsReadOnly="True"
+                                        IsReadOnlyCaretVisible="True"
+                                        Text="{Binding Value, Mode=OneTime}"
+                                        Title="{Binding Type.Name, Mode=OneTime}"/>
+                        <Button Content=""
+                                Command="{Binding PushCommand}"
+                                Grid.Column="1" Margin="6,0,3,0"
+                                Style="{DynamicResource ItemActionStyle}"/>
+                        <Button Content=""
+                                Command="{Binding PullCommand}"
+                                Grid.Column="2" Margin="3,0,3,0"
+                                Style="{DynamicResource ItemActionStyle}"/>
+                        <Button Content="✖"
+                                Command="{Binding RemoveCommand}"
+                                Grid.Column="3" Margin="3,0,3,0"
+                                Style="{DynamicResource ItemActionStyle}"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
@@ -100,37 +93,106 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
-
         <ctrls:LabelBox Title="Value"
-                        Margin="0,0,101,0"
-                        Style="{StaticResource TGLabelBox}"
-                        Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="5"/>
+                        Margin="0,163,175,102"
+                        Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"/>
+        <ctrls:LabelBox Title="ID"
+                        MaxLength="4"
+                        Margin="227,163,100,102"
+                        Text="{Binding Id, UpdateSourceTrigger=PropertyChanged}"/>
         <ctrls:LabelBox Title="Quantity"
                         MaxLength="3"
-                        Margin="35,0,0,0"
-                        Grid.Column="4" Grid.Row="2"
-                        Style="{StaticResource TGLabelBox}"/>
+                        Margin="302,163,0,102"
+                        Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"/>
+        <Grid Margin="0,188,0,52">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="5"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="3"/>
+            </Grid.ColumnDefinitions>
 
-        <Button Content="Write Byte"
-                Grid.Column="0" Grid.Row="4"
-                Style="{StaticResource TGButton}"/>
-        <Button Content="Write Boolean"
-                Grid.Column="0" Grid.Row="6"
-                Style="{StaticResource TGButton}"/>
+            <Button Content="Write Byte"
+                    Command="{Binding WriteCommand}"
+                    Style="{StaticResource TGButton}"
+                    CommandParameter="{x:Type sys:Byte}"/>
+            <Button Content="Write Boolean"
+                    Grid.Row="2"
+                    Command="{Binding WriteCommand}"
+                    Style="{StaticResource TGButton}"
+                    CommandParameter="{x:Type sys:Boolean}"/>
 
-        <Button Content="Write UInt16"
-                Grid.Column="2" Grid.Row="4"
-                Style="{StaticResource TGButton}"/>
-        <Button Content="Write Int32"
-                Grid.Column="2" Grid.Row="6"
-                Style="{StaticResource TGButton}"/>
+            <Button Content="Write Int32"
+                    Grid.Column="2"
+                    Command="{Binding WriteCommand}"
+                    Style="{StaticResource TGButton}"
+                    CommandParameter="{x:Type sys:Int32}"/>
+            <Button Content="Write UInt16"
+                    Grid.Column="2" Grid.Row="2"
+                    Command="{Binding WriteCommand}"
+                    Style="{StaticResource TGButton}"
+                    CommandParameter="{x:Type sys:UInt16}"/>
 
-        <Button Content="Write String"
-                Grid.Column="4" Grid.Row="4"
-                Style="{StaticResource TGButton}"/>
-        <Button Content="Write Double"
-                Grid.Column="4" Grid.Row="6"
-                Style="{StaticResource TGButton}"/>
-
+            <Button Content="Write String"
+                    Grid.Column="4"
+                    Command="{Binding WriteCommand}"
+                    Style="{StaticResource TGButton}"
+                    CommandParameter="{x:Type sys:String}"/>
+            <Button Content="Write Double"
+                    Grid.Column="4" Grid.Row="2"
+                    Command="{Binding WriteCommand}"
+                    Style="{StaticResource TGButton}"
+                    CommandParameter="{x:Type sys:Double}"/>
+        </Grid>
+        <Separator Margin="0,233,0,45" Background="{StaticResource TGPrimaryBrush}"/>
+        <Grid Margin="0,240,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="5"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <ctrls:LabelBox Title="Signature" 
+                            IsReadOnly="True"
+                            Grid.ColumnSpan="5"
+                            IsReadOnlyCaretVisible="True"
+                            Text="{Binding Signature, Mode=OneWay}"/>
+            <ctrls:LabelBox Title="Chunks"
+                            Grid.Column="6"
+                            IsReadOnly="True"
+                            IsReadOnlyCaretVisible="True"
+                            Text="{Binding Chunks.Count, Mode=OneWay}"/>
+            <Button Content="Copy"
+                    Grid.Row="2"
+                    Command="{Binding CopyCommand}"
+                    Style="{StaticResource TGButton}"/>
+            <Button Content="Save"
+                    Grid.Column="2" Grid.Row="2"
+                    Command="{Binding SaveCommand}"
+                    Style="{StaticResource TGButton}"/>
+            <Button Content="Load"
+                    Grid.Column="4" Grid.Row="2"
+                    Command="{Binding LoadCommand}"
+                    Style="{StaticResource TGButton}"/>
+            <Button Content="Clear"
+                    Grid.Column="6" Grid.Row="2"
+                    Command="{Binding ClearCommand}"
+                    Style="{StaticResource TGButton}"/>
+        </Grid>
     </Grid>
 </UserControl>
