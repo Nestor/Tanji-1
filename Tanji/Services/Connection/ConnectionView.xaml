@@ -15,7 +15,6 @@
                         Margin="0,0,176,298"
                         TextAlignment="Center"
                         IsReadOnlyCaretVisible="True"
-                        Style="{StaticResource TGLabelBox}"
                         Text="{Binding HotelServer, Converter={c:HotelEndPointConverter}}">
             <TextBoxBase.IsReadOnly>
                 <MultiBinding Converter="{c:BooleanOrConverter}">
@@ -48,14 +47,12 @@
                         Margin="365,246,0,52"
                         Text="{Binding ProxyPort}"
                         IsReadOnlyCaretVisible="True"
-                        Style="{StaticResource TGLabelBox}"
                         IsReadOnly="{Binding IsConnecting}"/>
         <ctrls:LabelBox Title="Custom Client"
                         Margin="0,271,95,27"
                         TextAlignment="Center"
                         IsReadOnlyCaretVisible="True"
                         Text="{Binding CustomClientPath}"
-                        Style="{StaticResource TGLabelBox}"
                         IsReadOnly="{Binding IsConnecting}"/>
         <Button Content="Browse"
                 Margin="388,271,0,27"
@@ -68,7 +65,6 @@
                Margin="0,298,190,0"
                Style="{StaticResource TGLabel}"
                IsEnabled="{Binding IsConnecting}"/>
-        <Separator Margin="57,27,147,147" Width="10"/>
         <Button Content="Cancel"
                 Margin="293,298,95,0"
                 Style="{StaticResource TGButton}"
