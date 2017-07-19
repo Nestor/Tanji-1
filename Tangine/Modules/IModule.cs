@@ -7,6 +7,7 @@ namespace Tangine.Modules
 {
     public interface IModule : IDisposable
     {
+        bool IsStandalone { get; }
         IInstaller Installer { get; set; }
 
         void Synchronize(HGame game);
