@@ -1,6 +1,4 @@
-﻿//#define DEBUG_INJECTION
-
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 
 using Tanji.Helpers;
@@ -38,11 +36,7 @@ namespace Tanji.Services.Injection
             {
                 return false;
             }
-#if DEBUG_INJECTION
-            return true;
-#else
             return (App.Master?.Connection.IsConnected ?? true);
-#endif
         }
         private async Task SendToClientAsync(object arg)
         {
