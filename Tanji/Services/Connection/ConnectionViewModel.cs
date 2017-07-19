@@ -194,6 +194,7 @@ namespace Tanji.Services.Connection
 
             Status = DISASSEMBLING_CLIENT;
             App.Master.Game = new HGame(e.Payload);
+            App.Master.Game.Location = clientPath;
             App.Master.Game.Disassemble();
 
             if (App.Master.Game.IsPostShuffle)
@@ -354,7 +355,7 @@ namespace Tanji.Services.Connection
         private void ExportCertificateAuthority(object obj)
         {
             if (!Eavesdropper.Certifier.CreateTrustedRootCertificate()) return;
-            if ((_saveCertificateDialog.ShowDialog() ?? false))
+            if (_saveCertificateDialog.ShowDialog() ?? false)
             {
                 Eavesdropper.Certifier
                     .ExportTrustedRootCertificate(_saveCertificateDialog.FileName);
