@@ -219,10 +219,11 @@ namespace Tangine.Network
             }
         }
 
-        public static void StopListeners()
+        public static void StopListeners(int? port = null)
         {
             foreach (Socket listener in _listeners.Values)
             {
+                if (port != null && port != ((IPEndPoint)listener.LocalEndPoint).Port) continue;
                 listener.Close();
             }
             _listeners.Clear();
