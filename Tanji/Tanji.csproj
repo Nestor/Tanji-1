@@ -78,10 +78,12 @@
     </Compile>
     <Compile Include="Helpers\AsyncCommand.cs" />
     <Compile Include="Helpers\Converters\BooleanOrConverter.cs" />
+    <Compile Include="Helpers\Converters\EnumerableToStringConverter.cs" />
     <Compile Include="Helpers\Converters\HotelEndPointConverter.cs" />
     <Compile Include="Helpers\Converters\InverseBooleanConverter.cs" />
     <Compile Include="Helpers\MultiConverter.cs" />
     <Compile Include="Helpers\Command.cs" />
+    <Compile Include="Helpers\ObservableRangeCollection.cs" />
     <Compile Include="Helpers\SingleConverter.cs" />
     <Compile Include="Helpers\ObservableObject.cs" />
     <Compile Include="Network\HConnection.cs" />
