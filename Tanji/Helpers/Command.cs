@@ -3,34 +3,43 @@ using System.Windows.Input;
 
 namespace Tanji.Helpers
 {
-    public class Command : ICommand
+    public class Command<T> : ICommand
     {
-        private readonly Action<object> _executeDelegate;
-        private readonly Predicate<object> _canExecuteDelegate;
+        private readonly Action<T> _executeDelegate;
+        private readonly Predicate<T> _canExecuteDelegate;
 
         public event EventHandler CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
         }
-        
-        public Command(Action<object> execute)
+
+        public Command(Action<T> execute)
         {
             _executeDelegate = execute;
         }
-        public Command(Action<object> execute, Predicate<object> canExecute)
+        public Command(Action<T> execute, Predicate<T> canExecute)
             : this(execute)
         {
             _canExecuteDelegate = canExecute;
         }
 
-        public void Execute(object parameter)
+        public virtual void Execute(object parameter)
         {
-            _executeDelegate(parameter);
+            _executeDelegate((T)parameter);
         }
-        public bool CanExecute(object parameter)
+        public virtual bool CanExecute(object parameter)
         {
-            return (_canExecuteDelegate?.Invoke(parameter) ?? true);
+            return (_canExecuteDelegate?.Invoke((T)parameter) ?? true);
         }
+    }
+    public class Command : Command<object>
+    {
+        public Command(Action<object> execute)
+            : base(execute)
+        { }
+        public Command(Action<object> execute, Predicate<object> canExecute)
+            : base(execute, canExecute)
+        { }
     }
 }
