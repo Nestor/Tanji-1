@@ -190,6 +190,112 @@
                     </Setter>-->
     </Style>
 
+    <Style TargetType="ctrls:LabelBox">
+        <Setter Property="TextAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ctrls:LabelBox">
+                    <Grid SnapsToDevicePixels="True">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="7"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Height="20"
+                                   Padding="6,1,6,0"
+                                   Foreground="Black"
+                                   VerticalAlignment="Center"
+                                   Text="{TemplateBinding Title}"
+                                   Width="{TemplateBinding TitleWidth}"/>
+                        <Line Grid.Column="1"
+                              Stroke="{StaticResource TGPrimaryBrush}"
+                              X1="0.5" Y1="0" Y2="{Binding ElementName=Border, Path=ActualHeight}" X2="0.5"/>
+                        <Border x:Name="Border"
+                                    Grid.Column="2"
+                                    BorderThickness="1"
+                                    BorderBrush="#ABADB3">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Background="{TemplateBinding Background}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsFocused" Value="False"/>
+                                <Condition Property="IsMouseOver" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Border"
+                                                            Storyboard.TargetProperty="BorderBrush.Color"
+                                                            Duration="0:0:0.2"
+                                                            To="#7EB4EA"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Border"
+                                                            Storyboard.TargetProperty="BorderBrush.Color"
+                                                            Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsFocused" Value="True"/>
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Border"
+                                                            Storyboard.TargetProperty="BorderBrush.Color"
+                                                            Duration="0:0:0.2"
+                                                            To="#569DE5"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="Border"
+                                                            Storyboard.TargetProperty="BorderBrush.Color"
+                                                            Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+                        <Trigger Property="IsReadOnly" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
+                                                            Duration="0:0:0.2"
+                                                            To="DarkGray"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
+                                                            Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style x:Key="TGLabel" TargetType="Label">
         <Setter Property="IsEnabled" Value="False"/>
         <Setter Property="BorderBrush" Value="{StaticResource TGPrimaryBrush}"/>
@@ -552,108 +658,5 @@
                             Value="{DynamicResource TGBottomTabItem}"/>
             </Trigger>
         </Style.Triggers>
-    </Style>
-    <Style x:Key="TGLabelBox" TargetType="ctrls:LabelBox">
-        <Setter Property="TextAlignment" Value="Center"/>
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ctrls:LabelBox">
-                    <Grid SnapsToDevicePixels="True">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="7"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0"
-                                   Padding="6,1,6,0"
-                                   Foreground="Black"
-                                   Text="{TemplateBinding Title}"
-                                   Width="{TemplateBinding TitleWidth}"/>
-                        <Line Grid.Column="1"
-                              Stroke="{StaticResource TGPrimaryBrush}"
-                              X1="0.5" Y1="0" Y2="{Binding ElementName=Border, Path=ActualHeight}" X2="0.5"/>
-                        <Border x:Name="Border"
-                                    Grid.Column="2"
-                                    BorderThickness="1"
-                                    BorderBrush="#ABADB3">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                              Background="{TemplateBinding Background}"
-                                              Foreground="{TemplateBinding Foreground}"
-                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                        </Border>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <MultiTrigger>
-                            <MultiTrigger.Conditions>
-                                <Condition Property="IsFocused" Value="False"/>
-                                <Condition Property="IsMouseOver" Value="True"/>
-                            </MultiTrigger.Conditions>
-                            <MultiTrigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation Storyboard.TargetName="Border"
-                                                            Storyboard.TargetProperty="BorderBrush.Color"
-                                                            Duration="0:0:0.2"
-                                                            To="#7EB4EA"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </MultiTrigger.EnterActions>
-                            <MultiTrigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation Storyboard.TargetName="Border"
-                                                            Storyboard.TargetProperty="BorderBrush.Color"
-                                                            Duration="0:0:0.2"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </MultiTrigger.ExitActions>
-                        </MultiTrigger>
-                        <MultiTrigger>
-                            <MultiTrigger.Conditions>
-                                <Condition Property="IsFocused" Value="True"/>
-                            </MultiTrigger.Conditions>
-                            <MultiTrigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation Storyboard.TargetName="Border"
-                                                            Storyboard.TargetProperty="BorderBrush.Color"
-                                                            Duration="0:0:0.2"
-                                                            To="#569DE5"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </MultiTrigger.EnterActions>
-                            <MultiTrigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation Storyboard.TargetName="Border"
-                                                            Storyboard.TargetProperty="BorderBrush.Color"
-                                                            Duration="0:0:0.2"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </MultiTrigger.ExitActions>
-                        </MultiTrigger>
-                        <Trigger Property="IsReadOnly" Value="True">
-                            <Trigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
-                                                            Duration="0:0:0.2"
-                                                            To="DarkGray"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.EnterActions>
-                            <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation Storyboard.TargetProperty="Foreground.Color"
-                                                            Duration="0:0:0.2"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.ExitActions>
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 </ResourceDictionary>
