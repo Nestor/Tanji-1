@@ -40,8 +40,7 @@ namespace Tanji.Helpers
         }
         protected void RaiseOnPropertyChanged([CallerMemberName]string propertyName = "")
         {
-            OnPropertyChanged(
-                new PropertyChangedEventArgs(propertyName));
+            OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
 
         public bool AlwaysTrue(object obj) => true;
