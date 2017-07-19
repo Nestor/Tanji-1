@@ -27,19 +27,29 @@ namespace Tangine.Modules
 
         internal void Invoke(object container, DataInterceptedEventArgs args)
         {
-            object result = Method?.Invoke(
-                container, CreateValues(args, Method.GetParameters()));
+            object[] parameters = CreateValues(args);
+            object result = Method?.Invoke(container, parameters);
 
-            var replacement = (result as HPacket);
-            if (replacement != null)
+            switch (result)
             {
-                args.Packet = replacement;
+                case HPacket packet:
+                {
+                    args.Packet = packet;
+                    break;
+                }
+                case object[] chunks:
+                {
+                    args.Packet = args.Packet.Format.CreatePacket(args.Packet.Id, chunks);
+                    break;
+                }
             }
         }
 
-        private object[] CreateValues(DataInterceptedEventArgs args, ParameterInfo[] parameters)
+        private object[] CreateValues(DataInterceptedEventArgs args)
         {
+            ParameterInfo[] parameters = Method.GetParameters();
             var values = new object[parameters.Length];
+
             for (int i = 0; i < values.Length; i++)
             {
                 int position = 0;
