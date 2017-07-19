@@ -28,22 +28,23 @@ namespace Tangine.Network.Protocol
             get { return _id; }
             set
             {
-                if (_id == value) return;
-                _id = value;
-
-                if (_toBytesCache != null || _toStringCache != null)
+                if (_id != value)
                 {
-                    byte[] idData = Format.GetBytes(value);
-                    if (_toBytesCache != null)
+                    _id = value;
+                    if (_toBytesCache != null || _toStringCache != null)
                     {
-                        Format.PlaceBytes(idData, _toBytesCache, Format.IdPosition);
-                    }
-                    if (_toStringCache != null)
-                    {
-                        char[] characters = _toStringCache.ToCharArray();
-                        characters[Format.IdPosition] = (char)idData[0];
-                        characters[Format.IdPosition + 1] = (char)idData[1];
-                        _toStringCache = new string(characters);
+                        byte[] idData = Format.GetBytes(value);
+                        if (_toBytesCache != null)
+                        {
+                            Format.PlaceBytes(idData, _toBytesCache, Format.IdPosition);
+                        }
+                        if (_toStringCache != null)
+                        {
+                            char[] characters = _toStringCache.ToCharArray();
+                            characters[Format.IdPosition] = (char)idData[0];
+                            characters[Format.IdPosition + 1] = (char)idData[1];
+                            _toStringCache = new string(characters);
+                        }
                     }
                 }
             }
@@ -178,6 +179,70 @@ namespace Tangine.Network.Protocol
                 chunk[i] = _body[position++];
             }
             return chunk;
+        }
+
+        public void Write(int value)
+        {
+            Write(value, _body.Count);
+        }
+        public void Write(int value, int position)
+        {
+            Write(Format.GetBytes(value), position);
+        }
+
+        public void Write(string value)
+        {
+            Write(value, _body.Count);
+        }
+        public void Write(string value, int position)
+        {
+            Write(Format.GetBytes(value), position);
+        }
+
+        public void Write(bool value)
+        {
+            Write(value, _body.Count);
+        }
+        public void Write(bool value, int position)
+        {
+            Write(Format.GetBytes(value), position);
+        }
+
+        public void Write(ushort value)
+        {
+            Write(value, _body.Count);
+        }
+        public void Write(ushort value, int position)
+        {
+            Write(Format.GetBytes(value), position);
+        }
+
+        public void Write(double value)
+        {
+            Write(value, _body.Count);
+        }
+        public void Write(double value, int position)
+        {
+            Write(Format.GetBytes(value), position);
+        }
+
+        public void Write(byte value)
+        {
+            Write(value, _body.Count);
+        }
+        public void Write(byte value, int position)
+        {
+            Write(new[] { value }, position);
+        }
+
+        public void Write(byte[] value)
+        {
+            Write(value, _body.Count);
+        }
+        public void Write(byte[] value, int position)
+        {
+            _body.InsertRange(position, value);
+            ResetCache();
         }
 
         private void ResetCache()

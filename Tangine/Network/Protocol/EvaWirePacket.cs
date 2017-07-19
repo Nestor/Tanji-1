@@ -14,11 +14,6 @@ namespace Tangine.Network.Protocol
             : this(Construct(id, values))
         { }
 
-        protected override byte[] AsBytes()
-        {
-            return null;
-        }
-
         public static byte[] ToBytes(string signature)
         {
             return ToBytes(HFormat.EvaWire, signature);

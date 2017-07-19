@@ -14,11 +14,6 @@ namespace Tangine.Network.Protocol
             : this(isOutgoing, Construct(isOutgoing, id, values))
         { }
 
-        protected override byte[] AsBytes()
-        {
-            return null;
-        }
-
         private static HFormat GetResolver(bool isOutgoing)
         {
             return (isOutgoing ? HFormat.WedgieOut : HFormat.WedgieIn);
