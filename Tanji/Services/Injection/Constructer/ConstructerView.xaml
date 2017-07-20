@@ -50,7 +50,8 @@
     <Grid Width="397" Height="285">
         <ListView ItemsSource="{Binding Chunks}"
                   Margin="0,0,0,127"
-                  BorderThickness="0">
+                  BorderThickness="0"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid MaxWidth="378">
@@ -69,15 +70,15 @@
                         <Button Content=""
                                 Command="{Binding PushCommand}"
                                 Grid.Column="1" Margin="6,0,3,0"
-                                Style="{DynamicResource ItemActionStyle}"/>
+                                Style="{StaticResource ItemActionStyle}"/>
                         <Button Content=""
                                 Command="{Binding PullCommand}"
                                 Grid.Column="2" Margin="3,0,3,0"
-                                Style="{DynamicResource ItemActionStyle}"/>
+                                Style="{StaticResource ItemActionStyle}"/>
                         <Button Content="✖"
                                 Command="{Binding RemoveCommand}"
                                 Grid.Column="3" Margin="3,0,3,0"
-                                Style="{DynamicResource ItemActionStyle}"/>
+                                Style="{StaticResource ItemActionStyle}"/>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
