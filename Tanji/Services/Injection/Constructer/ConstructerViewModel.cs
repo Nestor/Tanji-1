@@ -243,20 +243,56 @@ namespace Tanji.Services.Injection.Constructer
 
         private object Convert(string input, Type targetType)
         {
-            try
+            switch (Type.GetTypeCode(targetType))
             {
-                switch (Type.GetTypeCode(targetType))
+                case TypeCode.String: return input;
+                case TypeCode.Byte:
                 {
-                    default: return null;
-                    case TypeCode.String: return input;
-                    case TypeCode.Byte: return byte.Parse(input);
-                    case TypeCode.Int32: return int.Parse(input);
-                    case TypeCode.Boolean: return bool.Parse(input);
-                    case TypeCode.UInt16: return ushort.Parse(input);
-                    case TypeCode.Double: return double.Parse(input);
+                    byte bValue = 0;
+                    if (byte.TryParse(input, out bValue))
+                    {
+                        return bValue;
+                    }
+                    break;
+                }
+                case TypeCode.Int32:
+                {
+                    int iValue = 0;
+                    if (int.TryParse(input, out iValue))
+                    {
+                        return iValue;
+                    }
+                    break;
+                }
+                case TypeCode.Boolean:
+                {
+                    bool bValue = false;
+                    if (bool.TryParse(input, out bValue))
+                    {
+                        return bValue;
+                    }
+                    break;
+                }
+                case TypeCode.UInt16:
+                {
+                    ushort uValue = 0;
+                    if (ushort.TryParse(input, out uValue))
+                    {
+                        return uValue;
+                    }
+                    break;
+                }
+                case TypeCode.Double:
+                {
+                    double dValue = 0;
+                    if (double.TryParse(input, out dValue))
+                    {
+                        return dValue;
+                    }
+                    break;
                 }
             }
-            catch { return null; }
+            return null;
         }
     }
 }
