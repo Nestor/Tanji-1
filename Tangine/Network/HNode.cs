@@ -43,6 +43,7 @@ namespace Tangine.Network
                 throw new ArgumentNullException(nameof(client));
             }
             Client = client;
+            Client.NoDelay = true;
         }
 
         public Task ConnectAsync(string host, int port)
