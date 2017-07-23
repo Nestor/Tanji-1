@@ -9,20 +9,30 @@ namespace Tangine.Modules
     {
         private readonly TService _service;
 
+        private IInstaller _installer;
         public IInstaller Installer
         {
-            get => _service.Installer;
-            set => _service.Installer = value;
+            get => (_service?.Installer ?? _installer);
+            set
+            {
+                _installer = value;
+                if (_service != null)
+                {
+                    _service.Installer = value;
+                }
+            }
         }
+
         public virtual bool IsStandalone { get; }
 
         public HGame Game => Installer.Game;
         public HGameData GameData => Installer.GameData;
         public IHConnection Connection => Installer.Connection;
-        
+
         public ExtensionForm()
         {
             _service = new TService(this);
+            _service.Installer = _installer;
         }
 
         void IModule.Synchronize(HGame game)
