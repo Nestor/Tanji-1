@@ -107,6 +107,15 @@ namespace Tanji.Services.Modules
                         }
                         case 2:
                         {
+                            byte[] packetData = packet.ReadBytes(packet.ReadInt32(1), 5);
+                            if (packet.ReadBoolean()) // IsOutgoing
+                            {
+                                await App.Master.Connection.SendToServerAsync(packetData).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                await App.Master.Connection.SendToClientAsync(packetData).ConfigureAwait(false);
+                            }
                             break;
                         }
                     }
