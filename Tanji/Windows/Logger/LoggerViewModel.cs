@@ -18,6 +18,7 @@ namespace Tanji.Windows.Logger
 {
     public class LoggerViewModel : ObservableObject, IHaltable, IReceiver
     {
+        private int _doEventsCount = 0;
         private readonly object _writeQueueLock;
         private readonly object _processQueueLock;
         private readonly HPacketLogger _packetLogger;
@@ -357,7 +358,7 @@ namespace Tanji.Windows.Logger
                 {
                     int position = 0;
                     HPacket packet = args.Packet;
-                    string structure = ("{u:" + packet.Id + "}");
+                    string structure = ("{id:" + packet.Id + "}");
                     foreach (string valueType in message.Structure)
                     {
                         switch (valueType.ToLower())
@@ -393,7 +394,12 @@ namespace Tanji.Windows.Logger
                 while (!_packetLogger.IsHandleCreated) ;
                 if (!IsReceiving) return;
 
-                _packetLogger.BeginInvoke(_displayEntry, entry);
+                if (++_doEventsCount == 25)
+                {
+                    _doEventsCount = 0;
+                    System.Windows.Forms.Application.DoEvents();
+                }
+                _packetLogger.Invoke(_displayEntry, entry);
             }
         }
         private void PushToQueue(DataInterceptedEventArgs args)
