@@ -5,75 +5,83 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:c="clr-namespace:Tanji.Helpers.Converters"
              xmlns:local="clr-namespace:Tanji.Services.Connection"
-             xmlns:ctrls="clr-namespace:Tangine.Controls;assembly=Tangine"
+             xmlns:controls="clr-namespace:Tangine.Controls;assembly=Tangine"
              mc:Ignorable="d">
     <UserControl.DataContext>
-        <local:ConnectionViewModel x:Name="vm"/>
+        <local:ConnectionViewModel />
     </UserControl.DataContext>
-    <Grid Width="478" Height="318">
-        <ctrls:LabelBox Title="Hotel Server"
-                        Margin="0,0,176,298"
-                        TextAlignment="Center"
-                        IsReadOnlyCaretVisible="True"
-                        Text="{Binding HotelServer, Converter={c:HotelEndPointConverter}}">
-            <TextBoxBase.IsReadOnly>
-                <MultiBinding Converter="{c:BooleanOrConverter}">
-                    <Binding ElementName="vm" Path="IsConnecting"/>
-                    <Binding ElementName="vm" Path="IsAutomaticServerExtraction"/>
-                </MultiBinding>
-            </TextBoxBase.IsReadOnly>
-        </ctrls:LabelBox>
-        <CheckBox Content="Automatic Server Extraction"
-                  Padding="4,-1,0,0"
-                  Margin="307,0,0,298"
-                  VerticalContentAlignment="Center"
-                  IsChecked="{Binding IsAutomaticServerExtraction}"
-                  IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
-        <Separator Margin="0,20,0,291"
-                   Background="{StaticResource TGPrimaryBrush}"/>
-        <Button Content="Destroy Certificates"
-                Height="20"
-                Margin="205,246,118,52"
-                Style="{StaticResource TGButton}"
-                Command="{Binding DestroyCertificatesCommand}"
-                IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
-        <Button Content="Export Certificate Authority"
-                Height="20"
-                Margin="0,246,278,52"
-                Style="{StaticResource TGButton}"
-                Command="{Binding ExportCertificateAuthorityCommand}"/>
-        <ctrls:LabelBox Title="Proxy Port"
-                        Height="20"
-                        Margin="365,246,0,52"
-                        Text="{Binding ProxyPort}"
-                        IsReadOnlyCaretVisible="True"
-                        IsReadOnly="{Binding IsConnecting}"/>
-        <ctrls:LabelBox Title="Custom Client"
-                        Margin="0,271,95,27"
-                        TextAlignment="Center"
-                        IsReadOnlyCaretVisible="True"
-                        Text="{Binding CustomClientPath}"
-                        IsReadOnly="{Binding IsConnecting}"/>
-        <Button Content="Browse"
-                Margin="388,271,0,27"
-                Style="{StaticResource TGButton}"
-                Command="{Binding BrowseCommand}"
-                IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
-        <Separator Margin="0,291,0,20"
-                   Background="{StaticResource TGPrimaryBrush}"/>
-        <Label Content="{Binding Status}"
-               Margin="0,298,190,0"
-               Style="{StaticResource TGLabel}"
-               IsEnabled="{Binding IsConnecting}"/>
-        <Button Content="Cancel"
-                Margin="293,298,95,0"
-                Style="{StaticResource TGButton}"
-                Command="{Binding CancelCommand}"
-                IsEnabled="{Binding IsConnecting}"/>
-        <Button Content="Connect"
-                Margin="388,298,0,0"
-                Style="{StaticResource TGButton}"
-                Command="{Binding ConnectCommand}"
-                IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}"/>
+    <Grid Width="{StaticResource PageWidth}"
+          Height="{StaticResource PageHeight}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="6" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="3" />
+            </Grid.ColumnDefinitions>
+            <controls:LabelBox Title="Hotel Server"
+                               IsReadOnlyCaretVisible="True"
+                               Text="{Binding HotelServer, Converter={c:HotelEndPointConverter}}">
+                <TextBoxBase.IsReadOnly>
+                    <MultiBinding Converter="{c:BooleanOrConverter}">
+                        <Binding Path="IsConnecting" />
+                        <Binding Path="IsAutomaticServerExtraction" />
+                    </MultiBinding>
+                </TextBoxBase.IsReadOnly>
+            </controls:LabelBox>
+            <CheckBox Content="Automatic Server Extraction"
+                      Grid.Column="2"
+                      VerticalContentAlignment="Center"
+                      IsChecked="{Binding IsAutomaticServerExtraction}"
+                      IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}" />
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20" />
+                <RowDefinition Height="7" />
+                <RowDefinition Height="20" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="3" />
+                <ColumnDefinition Width="90" />
+                <ColumnDefinition Width="3" />
+                <ColumnDefinition Width="90" />
+            </Grid.ColumnDefinitions>
+            <controls:LabelBox Text="{Binding CustomClientPath}"
+                               Grid.ColumnSpan="3"
+                               Title="Custom Client"
+                               IsReadOnlyCaretVisible="True"
+                               IsReadOnly="{Binding IsConnecting}" />
+            <Button Content="Browse"
+                    Grid.Column="4"
+                    Style="{StaticResource TGButton}"
+                    Command="{Binding BrowseCommand}"
+                    IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}" />
+            <Separator Grid.Row="1"
+                       Grid.ColumnSpan="5"
+                       Background="{StaticResource TGPrimaryBrush}" />
+            <Label Content="{Binding Status}"
+                   Grid.Row="2"
+                   Style="{StaticResource TGLabel}"
+                   IsEnabled="{Binding IsConnecting}" />
+            <Button Content="Cancel"
+                    Grid.Column="2"
+                    Grid.Row="2"
+                    Style="{StaticResource TGButton}"
+                    Command="{Binding CancelCommand}"
+                    IsEnabled="{Binding IsConnecting}" />
+            <Button Content="Connect"
+                    Grid.Column="4"
+                    Grid.Row="2"
+                    Style="{StaticResource TGButton}"
+                    Command="{Binding ConnectCommand}"
+                    IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}" />
+        </Grid>
     </Grid>
 </UserControl>
