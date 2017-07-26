@@ -11,18 +11,17 @@
         xmlns:options="clr-namespace:Tanji.Services.Options"
         mc:Ignorable="d"
         Title="{Binding Title}"
-        Topmost="{Binding IsAlwaysOnTop}"
         ResizeMode="CanMinimize"
         UseLayoutRounding="True"
         SizeToContent="WidthAndHeight"
         Icon="/Resources/Tanji_256.ico"
+        Topmost="{Binding IsAlwaysOnTop}"
         WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <local:MainViewModel/>
     </Window.DataContext>
-    <Grid Width="485" Height="357">
-        <TabControl Padding="3,6,3,3"
-                    Style="{StaticResource TGTabControl}">
+    <Grid Width="490" Height="360">
+        <TabControl Style="{StaticResource TGTabControl}">
             <TabItem Header="Connection">
                 <connection:ConnectionView/>
             </TabItem>
