@@ -50,9 +50,9 @@ namespace Tangine.Modules
             ParameterInfo[] parameters = Method.GetParameters();
             var values = new object[parameters.Length];
 
+            int position = 0;
             for (int i = 0; i < values.Length; i++)
             {
-                int position = 0;
                 ParameterInfo parameter = parameters[i];
                 switch (Type.GetTypeCode(parameter.ParameterType))
                 {
