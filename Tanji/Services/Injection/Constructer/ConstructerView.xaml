@@ -47,7 +47,7 @@
     <UserControl.DataContext>
         <local:ConstructerViewModel/>
     </UserControl.DataContext>
-    <Grid Width="397" Height="285">
+    <Grid Width="{StaticResource SubPageWidth}" Height="{StaticResource SubPageHeight}">
         <ListView ItemsSource="{Binding Chunks}"
                   Margin="0,0,0,127"
                   BorderThickness="0"
@@ -108,7 +108,7 @@
         <Grid Margin="0,188,0,52">
             <Grid.RowDefinitions>
                 <RowDefinition/>
-                <RowDefinition Height="5"/>
+                <RowDefinition Height="3"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -117,7 +117,6 @@
                 <ColumnDefinition/>
                 <ColumnDefinition Width="3"/>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="3"/>
             </Grid.ColumnDefinitions>
 
             <Button Content="Write Byte"
