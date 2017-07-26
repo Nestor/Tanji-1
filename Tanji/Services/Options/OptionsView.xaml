@@ -6,5 +6,5 @@
                 xmlns:local="clr-namespace:Tanji.Services.Options"
                 xmlns:h="clr-namespace:Tanji.Helpers"
                 mc:Ignorable="d">
-    <Grid Width="478" Height="318"/>
+    <Grid Width="{StaticResource PageWidth}" Height="{StaticResource PageHeight}"/>
 </UserControl>

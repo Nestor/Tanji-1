@@ -11,7 +11,7 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </UserControl.Resources>
-    <Grid Width="478" Height="318">
+    <Grid Width="{StaticResource PageWidth}" Height="{StaticResource PageHeight}">
         <ListView Margin="0,0,0,25"
                   ItemsSource="{Binding Modules}"
                   SelectedItem="{Binding SelectedModule}">

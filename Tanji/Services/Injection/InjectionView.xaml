@@ -12,7 +12,7 @@
     <UserControl.DataContext>
         <local:InjectionViewModel/>
     </UserControl.DataContext>
-    <Grid Width="478" Height="318">
+    <Grid Width="{StaticResource PageWidth}" Height="{StaticResource PageHeight}">
         <TabControl Margin="0,0,0,27"
                     TabStripPlacement="Right"
                     Style="{StaticResource TGTabControl}">

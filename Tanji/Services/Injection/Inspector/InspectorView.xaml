@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Tanji.Services.Injection.Inspector"
              mc:Ignorable="d">
-    <Grid Width="397" Height="285">
+    <Grid Width="{StaticResource SubPageWidth}" Height="{StaticResource SubPageHeight}">
         
     </Grid>
 </UserControl>
