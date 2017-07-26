@@ -1022,20 +1022,43 @@ namespace Tangine.Habbo
             if (initMethod == null) return false;
 
             ASCode code = initMethod.Body.ParseCode();
+            int hostIndex = abc.Pool.AddConstant(host);
+            int portIndex = abc.Pool.AddConstant(port);
             for (int i = 0; i < code.Count; i++)
             {
                 ASInstruction instruction = code[i];
-                if (instruction.OP != OPCode.CallPropVoid) continue;
-
-                var callPropVoid = (CallPropVoidIns)instruction;
-                if (callPropVoid.PropertyName.Name != "connect") continue;
-
-                code[i - 2] = new PushStringIns(abc, host);
-                code[i - 1] = new PushIntIns(abc, port);
-                break;
+                switch (instruction.OP)
+                {
+                    case OPCode.SetLocal_1:
+                    case OPCode.SetLocal_2:
+                    {
+                        code[i] = new PopIns();
+                        break;
+                    }
+                    case OPCode.GetLocal_1:
+                    {
+                        code[i] = new PushStringIns(abc, hostIndex);
+                        break;
+                    }
+                    case OPCode.GetLocal_2:
+                    {
+                        code[i] = new PushIntIns(abc) { ValueIndex = portIndex };
+                        break;
+                    }
+                    case OPCode.CallPropVoid:
+                    {
+                        var callPropVoid = (CallPropVoidIns)instruction;
+                        if (callPropVoid.PropertyName.Name == "connect")
+                        {
+                            code[i - 2] = new PushStringIns(abc, hostIndex);
+                            code[i - 1] = new PushIntIns(abc) { ValueIndex = portIndex };
+                        }
+                        break;
+                    }
+                }
             }
             initMethod.Body.Code = code.ToArray();
-            return true;
+            return DisableHostChanges(host, port);
         }
         public bool InjectDebugLogger(string functionName)
         {
@@ -1397,7 +1420,7 @@ namespace Tangine.Habbo
             sendMethod.Body.Code = sendCode.ToArray();
             return true;
         }
-        private bool DisableHostChanges()
+        private bool DisableHostChanges(string host = null, int? port = null)
         {
             ABCFile abc = ABCFiles.Last();
 
@@ -1427,15 +1450,32 @@ namespace Tangine.Habbo
             if (connectMethod == null) return false;
 
             ASCode connectCode = connectMethod.Body.ParseCode();
-            connectCode.InsertRange(4, new ASInstruction[]
+            if (host == null)
             {
-                // this.infoHost = getProperty("connection.info.host");
-                new GetLocal0Ins(),
-                new FindPropStrictIns(abc, abc.Pool.GetMultinameIndex("getProperty")),
-                new PushStringIns(abc, "connection.info.host"),
-                new CallPropertyIns(abc, abc.Pool.GetMultinameIndex("getProperty"), 1),
-                new InitPropertyIns(abc, infoHostSlot.QNameIndex)
-            });
+                connectCode.InsertRange(4, new ASInstruction[]
+                {
+                    // this.infoHost = getProperty("connection.info.host");
+                    new GetLocal0Ins(),
+                    new FindPropStrictIns(abc, abc.Pool.GetMultinameIndex("getProperty")),
+                    new PushStringIns(abc, "connection.info.host"),
+                    new CallPropertyIns(abc, abc.Pool.GetMultinameIndex("getProperty"), 1),
+                    new InitPropertyIns(abc, infoHostSlot.QNameIndex)
+                });
+            }
+            else
+            {
+                connectCode.InsertRange(4, new ASInstruction[]
+                {
+                    // this.infoHost = {host};
+                    new GetLocal0Ins(),
+                    new PushStringIns(abc, host),
+                    new InitPropertyIns(abc, infoHostSlot.QNameIndex)
+                });
+            }
+            if (port != null)
+            {
+                // TODO
+            }
 
             // This portion prevents any suffix from being added to the host slot.
             int magicInverseIndex = abc.Pool.AddConstant(65290);
