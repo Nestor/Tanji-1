@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -34,6 +35,7 @@ namespace Tangine.Modules
             _container = (container ?? this);
             _captureAtts = new List<DataCaptureAttribute>();
 
+            Installer = _container.Installer;
             foreach (MethodInfo callback in _container.GetType().GetMethods((CALLBACK_FLAGS)))
             {
                 var dataCaptureAtt = callback.GetCustomAttribute<DataCaptureAttribute>();
@@ -49,8 +51,8 @@ namespace Tangine.Modules
                 }
             }
 
-            IsStandalone = _container.IsStandalone;
-            if (IsStandalone)
+            IsStandalone = (_container.IsStandalone && _container.Installer == null);
+            if (IsStandalone && LicenseManager.UsageMode == LicenseUsageMode.Runtime)
             {
                 while (true)
                 {
@@ -59,7 +61,16 @@ namespace Tangine.Modules
                     {
                         installerNode.InFormat = HFormat.EvaWire;
                         installerNode.OutFormat = HFormat.EvaWire;
-                        Task installRemotelyTask = InstallRemotelyAsync(installerNode);
+
+                        // TODO: Gather info about current assembly.
+                        var infoPacketOut = new EvaWirePacket(0);
+                        infoPacketOut.Write("1.0.0.0");
+                        infoPacketOut.Write("Remote Module Name");
+                        infoPacketOut.Write("Remote Module Description");
+                        infoPacketOut.Write(0);
+
+                        installerNode.SendPacketAsync(infoPacketOut).Wait();
+                        Installer = _container.Installer = new DummyInstaller(_container, installerNode);
                         break;
                     }
                     else if (MessageBox.Show("Failed to connect to the remote installer, would you like to try again?",
@@ -69,19 +80,6 @@ namespace Tangine.Modules
                     }
                 }
             }
-        }
-
-        private async Task InstallRemotelyAsync(HNode installerNode)
-        {
-            // TODO: Gather info about current assembly.
-            var infoPacketOut = new EvaWirePacket(0);
-            infoPacketOut.Write("1.0.0.0");
-            infoPacketOut.Write("Remote Module Name");
-            infoPacketOut.Write("Remote Module Description");
-            infoPacketOut.Write(0);
-
-            await installerNode.SendPacketAsync(infoPacketOut).ConfigureAwait(false);
-            Installer = new DummyInstaller(_container, installerNode);
         }
 
         public virtual void Synchronize(HGame game)
@@ -235,7 +233,7 @@ namespace Tangine.Modules
 
             public Task<int> SendToClientAsync(byte[] data)
             {
-                return _installerNode.SendPacketAsync(1, false, data.Length, data);
+                return _installerNode.SendPacketAsync(2, false, data.Length, data);
             }
             public Task<int> SendToClientAsync(HPacket packet)
             {
@@ -248,7 +246,7 @@ namespace Tangine.Modules
 
             public Task<int> SendToServerAsync(byte[] data)
             {
-                return _installerNode.SendPacketAsync(1, true, data.Length, data);
+                return _installerNode.SendPacketAsync(2, true, data.Length, data);
             }
             public Task<int> SendToServerAsync(HPacket packet)
             {
