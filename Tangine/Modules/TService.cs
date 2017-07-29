@@ -24,6 +24,10 @@ namespace Tangine.Modules
         public IInstaller Installer { get; set; }
         public virtual bool IsStandalone { get; }
 
+        public HGame Game => Installer.Game;
+        public HGameData GameData => Installer.GameData;
+        public IHConnection Connection => Installer.Connection;
+
         protected TService()
             : this(null)
         { }
@@ -36,47 +40,49 @@ namespace Tangine.Modules
             _captureAtts = new List<DataCaptureAttribute>();
 
             Installer = _container.Installer;
-            foreach (MethodInfo callback in _container.GetType().GetMethods((CALLBACK_FLAGS)))
-            {
-                var dataCaptureAtt = callback.GetCustomAttribute<DataCaptureAttribute>();
-                if (dataCaptureAtt != null)
-                {
-                    dataCaptureAtt.Method = callback;
-                    if (dataCaptureAtt.Id != null)
-                    {
-                        (dataCaptureAtt.IsOutgoing ? _outCallbacks : _inCallbacks)
-                            .Add((ushort)dataCaptureAtt.Id, dataCaptureAtt);
-                    }
-                    else _captureAtts.Add(dataCaptureAtt);
-                }
-            }
-
             IsStandalone = (_container.IsStandalone && _container.Installer == null);
-            if (IsStandalone && LicenseManager.UsageMode == LicenseUsageMode.Runtime)
+            if (LicenseManager.UsageMode == LicenseUsageMode.Runtime)
             {
-                while (true)
+                foreach (MethodInfo callback in _container.GetType().GetMethods((CALLBACK_FLAGS)))
                 {
-                    HNode installerNode = HNode.ConnectNewAsync("127.0.0.1", REMOTE_MODULE_PORT).Result;
-                    if (installerNode != null)
+                    var dataCaptureAtt = callback.GetCustomAttribute<DataCaptureAttribute>();
+                    if (dataCaptureAtt != null)
                     {
-                        installerNode.InFormat = HFormat.EvaWire;
-                        installerNode.OutFormat = HFormat.EvaWire;
-
-                        // TODO: Gather info about current assembly.
-                        var infoPacketOut = new EvaWirePacket(0);
-                        infoPacketOut.Write("1.0.0.0");
-                        infoPacketOut.Write("Remote Module Name");
-                        infoPacketOut.Write("Remote Module Description");
-                        infoPacketOut.Write(0);
-
-                        installerNode.SendPacketAsync(infoPacketOut).Wait();
-                        Installer = _container.Installer = new DummyInstaller(_container, installerNode);
-                        break;
+                        dataCaptureAtt.Method = callback;
+                        if (dataCaptureAtt.Id != null)
+                        {
+                            (dataCaptureAtt.IsOutgoing ? _outCallbacks : _inCallbacks)
+                                .Add((ushort)dataCaptureAtt.Id, dataCaptureAtt);
+                        }
+                        else _captureAtts.Add(dataCaptureAtt);
                     }
-                    else if (MessageBox.Show("Failed to connect to the remote installer, would you like to try again?",
-                        "Tangine - Alert!", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                }
+                if (IsStandalone)
+                {
+                    while (true)
                     {
-                        Environment.Exit(0);
+                        HNode installerNode = HNode.ConnectNewAsync("127.0.0.1", REMOTE_MODULE_PORT).Result;
+                        if (installerNode != null)
+                        {
+                            installerNode.InFormat = HFormat.EvaWire;
+                            installerNode.OutFormat = HFormat.EvaWire;
+
+                            // TODO: Gather info about current assembly.
+                            var infoPacketOut = new EvaWirePacket(0);
+                            infoPacketOut.Write("1.0.0.0");
+                            infoPacketOut.Write("Remote Module Name");
+                            infoPacketOut.Write("Remote Module Description");
+                            infoPacketOut.Write(0);
+
+                            installerNode.SendPacketAsync(infoPacketOut).Wait();
+                            Installer = _container.Installer = new DummyInstaller(_container, installerNode);
+                            break;
+                        }
+                        else if (MessageBox.Show("Failed to connect to the remote installer, would you like to try again?",
+                            "Tangine - Alert!", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                        {
+                            Environment.Exit(0);
+                        }
                     }
                 }
             }

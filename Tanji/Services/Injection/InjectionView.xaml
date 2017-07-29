@@ -13,8 +13,12 @@
         <local:InjectionViewModel/>
     </UserControl.DataContext>
     <Grid Width="{StaticResource PageWidth}" Height="{StaticResource PageHeight}">
-        <TabControl Margin="0,0,0,27"
-                    TabStripPlacement="Right"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="7"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TabControl TabStripPlacement="Right"
                     Style="{StaticResource TGTabControl}">
             <TabItem Header="Constructer">
                 <constructer:ConstructerView/>
@@ -29,24 +33,28 @@
                 <filter:FilterView/>
             </TabItem>
         </TabControl>
-        <Separator Margin="0,291,0,20"
-                   Background="{StaticResource TGPrimaryBrush}"/>
-        <ComboBox Text="{Binding PacketSignature}"
-                  Height="20"
-                  Padding="0"
-                  IsEditable="True"
-                  Margin="0,298,220,0"
-                  VerticalContentAlignment="Center"
-                  ItemsSource="{Binding PacketSignatures}"/>
-        <Button Content="Send To Client"
-                Height="20"
-                Margin="263,298,110,0"
-                Style="{StaticResource TGButton}"
-                Command="{Binding SendToClientCommand}"/>
-        <Button Content="Send To Server"
-                Height="20"
-                Margin="373,298,0,0"
-                Style="{StaticResource TGButton}"
-                Command="{Binding SendToServerCommand}"/>
+        <Separator Grid.Row="1" Background="{StaticResource TGPrimaryBrush}"/>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Text="{Binding PacketSignature}"
+                      Padding="0"
+                      IsEditable="True"
+                      VerticalContentAlignment="Center"
+                      ItemsSource="{Binding PacketSignatures}"/>
+            <Button Content="Send To Client"
+                    Grid.Column="2"
+                    Style="{StaticResource TGButton}"
+                    Command="{Binding SendToClientCommand}"/>
+            <Button Content="Send To Server"
+                    Grid.Column="4"
+                    Style="{StaticResource TGButton}"
+                    Command="{Binding SendToServerCommand}"/>
+        </Grid>
     </Grid>
 </UserControl>

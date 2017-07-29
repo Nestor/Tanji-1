@@ -8,11 +8,11 @@ namespace Tanji.Services.Injection.Constructer.Models
     {
         private readonly ConstructerViewModel _viewModel;
 
-        public Type Type { get; }
+        public TypeCode Code { get; }
         public int Index => _viewModel.Chunks.IndexOf(this);
 
-        private object _value = null;
-        public object Value
+        private string _value = null;
+        public string Value
         {
             get => _value;
             set
@@ -26,12 +26,12 @@ namespace Tanji.Services.Injection.Constructer.Models
         public Command PullCommand { get; }
         public Command RemoveCommand { get; }
 
-        public Chunk(ConstructerViewModel viewModel, object value)
+        public Chunk(ConstructerViewModel viewModel, string value, TypeCode code)
         {
             _viewModel = viewModel;
 
+            Code = code;
             Value = value;
-            Type = value.GetType();
 
             RemoveCommand = new Command(Remove);
             PushCommand = new Command(Push, CanPush);
@@ -63,7 +63,7 @@ namespace Tanji.Services.Injection.Constructer.Models
 
         public override string ToString()
         {
-            return ("{" + Type.Name.ToLower()[0] + ":" + Value + "}");
+            return ("{" + Code.ToString().ToLower()[0] + ":" + Value + "}");
         }
     }
 }

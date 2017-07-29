@@ -2,7 +2,9 @@
 using System.Drawing;
 using System.Windows;
 using System.Threading;
+using System.Windows.Forms;
 using System.ComponentModel;
+using System.Windows.Threading;
 using System.Collections.Generic;
 using System.Windows.Forms.Integration;
 
@@ -18,10 +20,11 @@ namespace Tanji.Windows.Logger
 {
     public class LoggerViewModel : ObservableObject, IHaltable, IReceiver
     {
-        private int _doEventsCount = 0;
+        private DateTime? _firstIncomingStamp;
         private readonly object _writeQueueLock;
         private readonly object _processQueueLock;
         private readonly HPacketLogger _packetLogger;
+        private readonly List<HPacket> _lastIncomings;
         private readonly Queue<DataInterceptedEventArgs> _intercepted;
         private readonly Dictionary<int, MessageItem> _ignoredMessages;
         private readonly Action<List<Tuple<string, Color>>> _displayEntry;
@@ -198,9 +201,9 @@ namespace Tanji.Windows.Logger
             set
             {
                 _isAlwaysOnTop = value;
-                if (Application.Current?.MainWindow != null)
+                if (System.Windows.Application.Current?.MainWindow != null)
                 {
-                    Application.Current.MainWindow.Topmost = value;
+                    System.Windows.Application.Current.MainWindow.Topmost = value;
                 }
                 RaiseOnPropertyChanged();
             }
@@ -225,6 +228,7 @@ namespace Tanji.Windows.Logger
             _writeQueueLock = new object();
             _processQueueLock = new object();
             _packetLogger = new HPacketLogger();
+            _lastIncomings = new List<HPacket>();
             _intercepted = new Queue<DataInterceptedEventArgs>();
             _ignoredMessages = new Dictionary<int, MessageItem>();
 
@@ -394,12 +398,7 @@ namespace Tanji.Windows.Logger
                 while (!_packetLogger.IsHandleCreated) ;
                 if (!IsReceiving) return;
 
-                if (++_doEventsCount == 25)
-                {
-                    _doEventsCount = 0;
-                    System.Windows.Forms.Application.DoEvents();
-                }
-                _packetLogger.Invoke(_displayEntry, entry);
+                Dispatcher.BeginInvoke((MethodInvoker)(() => _packetLogger.Invoke(_displayEntry, entry)));
             }
         }
         private void PushToQueue(DataInterceptedEventArgs args)
@@ -409,6 +408,30 @@ namespace Tanji.Windows.Logger
                 if (IsLoggingAuthorized(args))
                 {
                     _intercepted.Enqueue(args);
+                    //if (!args.IsOutgoing)
+                    //{
+                    //    var now = DateTime.Now;
+                    //    if (_firstIncomingStamp == null)
+                    //    {
+                    //        _firstIncomingStamp = now;
+                    //    }
+                    //    else if ((now - (DateTime)_firstIncomingStamp).Seconds >= 5)
+                    //    {
+                    //        var duplicates = _lastIncomings.GroupBy(p => p.ToString())
+                    //            .Where(g => g.Count() >= 5)
+                    //            .Select(g => g.Key);
+
+                    //        if (duplicates.Count() > 0)
+                    //        {
+                    //            int id = (args.Packet.Id + ushort.MaxValue);
+                    //            _ignoredMessages.Add(id, App.Master.Game.InMessages[args.Packet.Id]);
+
+                    //            _lastIncomings.Clear();
+                    //            _firstIncomingStamp = null;
+                    //        }
+                    //    }
+                    //    _lastIncomings.Add(args.Packet);
+                    //}
                 }
             }
             if (IsReceiving && Monitor.TryEnter(_processQueueLock))
@@ -459,7 +482,7 @@ namespace Tanji.Windows.Logger
                 int id = args.Packet.Id;
                 if (!args.IsOutgoing)
                 {
-                    id = (ushort.MaxValue - id);
+                    id = (id + ushort.MaxValue);
                 }
                 if (_ignoredMessages.ContainsKey(id)) return false;
             }

@@ -29,8 +29,6 @@ namespace Tanji.Services.Modules
 
         private readonly List<string> _hashBlacklist;
         private readonly OpenFileDialog _installModuleDialog;
-
-        private static readonly Type _iModuleType;
         private static readonly Dictionary<string, ModuleInfo> _moduleCache;
 
         public Command InstallCommand { get; }
@@ -53,7 +51,6 @@ namespace Tanji.Services.Modules
 
         static ModulesViewModel()
         {
-            _iModuleType = typeof(IModule);
             _moduleCache = new Dictionary<string, ModuleInfo>();
         }
         public ModulesViewModel()
@@ -202,16 +199,10 @@ namespace Tanji.Services.Modules
                     AppDomain.CurrentDomain.AssemblyResolve += Assembly_Resolve;
                     foreach (Type type in module.Assembly.ExportedTypes)
                     {
-                        if (!_iModuleType.IsAssignableFrom(type)) continue;
-                        module.Type = type;
-
                         var moduleAtt = type.GetCustomAttribute<ModuleAttribute>();
-                        if (moduleAtt == null)
-                        {
-                            // Module attribute is required.
-                            _hashBlacklist.Add(hash);
-                            return;
-                        }
+                        if (moduleAtt == null) continue;
+
+                        module.Type = type;
                         module.Name = moduleAtt.Name;
                         module.Description = moduleAtt.Description;
                         module.Version = new Version(FileVersionInfo.GetVersionInfo(modulePath).FileVersion);

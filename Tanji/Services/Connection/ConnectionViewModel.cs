@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define NO_CACHE
+
+using System;
 using System.IO;
 using System.Net;
 using System.Linq;
@@ -142,7 +144,11 @@ namespace Tanji.Services.Connection
                 {
                     clientPath = CustomClientPath;
                 }
+#if !NO_CACHE
                 if (!File.Exists(clientPath))
+#else
+                if (true)
+#endif
                 {
                     Status = INTERCEPTING_CLIENT;
                     Eavesdropper.ResponseIntercepted += InterceptGameClient;
@@ -159,7 +165,7 @@ namespace Tanji.Services.Connection
                         App.Master.Game.GenerateMessageHashes();
                     }
 
-                    if (IsAutomaticServerExtraction)
+                    if (App.Master.GameData.Hotel == HHotel.Unknown && IsAutomaticServerExtraction)
                     {
                         Tuple<string, int?> endPoint = App.Master.Game.ExtractEndPoint();
                         if (!string.IsNullOrWhiteSpace(endPoint.Item1) || endPoint.Item2 != null)
@@ -201,29 +207,27 @@ namespace Tanji.Services.Connection
             {
                 Status = GENERATING_MESSAGE_HASHES;
                 App.Master.Game.GenerateMessageHashes();
-            }
 
-            Status = MODIFYING_CLIENT;
-            if (App.Master.Game.IsPostShuffle)
-            {
+                Status = MODIFYING_CLIENT;
                 App.Master.Game.DisableHostChecks();
                 App.Master.Game.InjectKeyShouter(4001);
             }
 
-            if (IsAutomaticServerExtraction)
-            {
-                Tuple<string, int?> endPoint = App.Master.Game.ExtractEndPoint();
-                if (!string.IsNullOrWhiteSpace(endPoint.Item1) || endPoint.Item2 != null)
-                {
-                    string host = (!string.IsNullOrWhiteSpace(endPoint.Item1) ?
-                        endPoint.Item1 : HotelServer.Host);
-
-                    HotelServer = HotelEndPoint.Parse(host, endPoint.Item2 ?? HotelServer.Port);
-                }
-            }
-
             if (App.Master.GameData.Hotel == HHotel.Unknown)
             {
+                if (IsAutomaticServerExtraction)
+                {
+                    Tuple<string, int?> endPoint = App.Master.Game.ExtractEndPoint();
+                    if (!string.IsNullOrWhiteSpace(endPoint.Item1) || endPoint.Item2 != null)
+                    {
+                        string host = (!string.IsNullOrWhiteSpace(endPoint.Item1) ?
+                            endPoint.Item1 : HotelServer.Host);
+
+                        HotelServer = HotelEndPoint.Parse(host, endPoint.Item2 ?? HotelServer.Port);
+                    }
+                }
+
+                Status = MODIFYING_CLIENT;
                 App.Master.Game.InjectEndPoint("127.0.0.1", HotelServer.Port);
             }
 
@@ -237,7 +241,10 @@ namespace Tanji.Services.Connection
 
             Status = ASSEMBLING_CLIENT;
             e.Payload = App.Master.Game.ToArray(compression);
-            File.WriteAllBytes(clientPath, e.Payload);
+            using (var clientStream = File.Open(clientPath, FileMode.Create, FileAccess.Write))
+            {
+                clientStream.Write(e.Payload, 0, e.Payload.Length);
+            }
 
             TerminateProxy();
             InterceptConnection();

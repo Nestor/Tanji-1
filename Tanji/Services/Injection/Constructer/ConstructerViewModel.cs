@@ -95,9 +95,10 @@ namespace Tanji.Services.Injection.Constructer
         }
 
         private void Chunk_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
+      {
             if (e.PropertyName != nameof(Chunk.Value)) return;
             RaiseOnPropertyChanged(nameof(Chunks));
+            RaiseOnPropertyChanged(nameof(Signature));
         }
         private void Chunks_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -121,19 +122,14 @@ namespace Tanji.Services.Injection.Constructer
 
         public void Write(Type targetType)
         {
-            object value = Convert(Value, targetType);
             for (int i = 0; i < Quantity; i++)
             {
-                Chunks.Add(new Chunk(this, value));
+                Chunks.Add(new Chunk(this, Value, Type.GetTypeCode(targetType)));
             }
         }
         private bool CanWrite(Type targetType)
         {
-            if ((Quantity + Chunks.Count) > MAX_CHUNKS)
-            {
-                return false;
-            }
-            return (Convert(Value, targetType) != null);
+            return (Quantity + Chunks.Count) <= MAX_CHUNKS;
         }
 
         private void Clear(object obj)
@@ -163,35 +159,9 @@ namespace Tanji.Services.Injection.Constructer
                     Chunks.Clear();
                     for (int i = 0; i < chunkCount; i++)
                     {
-                        object value = null;
+                        string value = chksReader.ReadString();
                         var code = (TypeCode)chksReader.ReadByte();
-                        switch (code)
-                        {
-                            case TypeCode.String:
-                            value = chksReader.ReadString();
-                            break;
-
-                            case TypeCode.Byte:
-                            value = chksReader.ReadByte();
-                            break;
-
-                            case TypeCode.Int32:
-                            value = chksReader.ReadInt32();
-                            break;
-
-                            case TypeCode.Boolean:
-                            value = chksReader.ReadBoolean();
-                            break;
-
-                            case TypeCode.UInt16:
-                            value = chksReader.ReadUInt16();
-                            break;
-
-                            case TypeCode.Double:
-                            value = chksReader.ReadDouble();
-                            break;
-                        }
-                        Chunks.Add(new Chunk(this, value));
+                        Chunks.Add(new Chunk(this, value, code));
                     }
                 }
             }
@@ -209,29 +179,8 @@ namespace Tanji.Services.Injection.Constructer
                     chksWriter.Write(Chunks.Count);
                     foreach (Chunk chunk in Chunks)
                     {
-                        var code = Type.GetTypeCode(chunk.Type);
-                        chksWriter.Write((byte)code);
-                        switch (code)
-                        {
-                            case TypeCode.String:
-                            chksWriter.Write((string)chunk.Value);
-                            break;
-                            case TypeCode.Byte:
-                            chksWriter.Write((byte)chunk.Value);
-                            break;
-                            case TypeCode.Int32:
-                            chksWriter.Write((int)chunk.Value);
-                            break;
-                            case TypeCode.Boolean:
-                            chksWriter.Write((bool)chunk.Value);
-                            break;
-                            case TypeCode.UInt16:
-                            chksWriter.Write((ushort)chunk.Value);
-                            break;
-                            case TypeCode.Double:
-                            chksWriter.Write((double)chunk.Value);
-                            break;
-                        }
+                        chksWriter.Write(chunk.Value);
+                        chksWriter.Write((byte)chunk.Code);
                     }
                 }
             }
@@ -239,60 +188,6 @@ namespace Tanji.Services.Injection.Constructer
         private bool CanSave(object obj)
         {
             return (Chunks.Count > 0);
-        }
-
-        private object Convert(string input, Type targetType)
-        {
-            switch (Type.GetTypeCode(targetType))
-            {
-                case TypeCode.String: return input;
-                case TypeCode.Byte:
-                {
-                    byte bValue = 0;
-                    if (byte.TryParse(input, out bValue))
-                    {
-                        return bValue;
-                    }
-                    break;
-                }
-                case TypeCode.Int32:
-                {
-                    int iValue = 0;
-                    if (int.TryParse(input, out iValue))
-                    {
-                        return iValue;
-                    }
-                    break;
-                }
-                case TypeCode.Boolean:
-                {
-                    bool bValue = false;
-                    if (bool.TryParse(input, out bValue))
-                    {
-                        return bValue;
-                    }
-                    break;
-                }
-                case TypeCode.UInt16:
-                {
-                    ushort uValue = 0;
-                    if (ushort.TryParse(input, out uValue))
-                    {
-                        return uValue;
-                    }
-                    break;
-                }
-                case TypeCode.Double:
-                {
-                    double dValue = 0;
-                    if (double.TryParse(input, out dValue))
-                    {
-                        return dValue;
-                    }
-                    break;
-                }
-            }
-            return null;
         }
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Tanji.Windows.Logger"
         mc:Ignorable="d"
-        Width="708" Height="549"
+        Width="700" Height="550"
         Title="Tanji - Packet Logger"
         Topmost="{Binding IsAlwaysOnTop}"
         WindowStartupLocation="CenterScreen"

@@ -90,6 +90,12 @@ namespace Tanji.Services.Modules.Models
                 FormUI.Close();
                 FormUI = null;
             }
+            else if (WindowUI != null)
+            {
+                WindowUI.Closed -= UserInterface_Closed;
+                WindowUI.Close();
+                WindowUI = null;
+            }
             else if (Instance != null)
             {
                 Instance.Dispose();
@@ -117,12 +123,23 @@ namespace Tanji.Services.Modules.Models
                 AppDomain.CurrentDomain.AssemblyResolve += _assemblyResolver;
                 if (Type != null)
                 {
-                    Instance = (IModule)FormatterServices.GetUninitializedObject(Type);
+                    if (!typeof(IModule).IsAssignableFrom(Type))
+                    {
+                        object instance = Activator.CreateInstance(Type);
+                        WindowUI = (instance as Window);
+
+                        if (WindowUI != null)
+                        {
+                            Instance = (IModule)WindowUI.DataContext;
+                        }
+                    }
+                    else Instance = (IModule)FormatterServices.GetUninitializedObject(Type);
+
                 }
                 else Instance = new DummyModule(this);
 
                 Instance.Installer = App.Master;
-                if (Type != null)
+                if (Type != null && WindowUI == null)
                 {
                     ConstructorInfo moduleConstructor = Type.GetConstructor(Type.EmptyTypes);
                     moduleConstructor.Invoke(Instance, null);
@@ -140,14 +157,10 @@ namespace Tanji.Services.Modules.Models
                     FormUI.Show();
                     FormUI.FormClosed += UserInterface_Closed;
                 }
-                else
+                else if (WindowUI != null)
                 {
-                    WindowUI = (Instance as Window);
-                    if (WindowUI != null)
-                    {
-                        WindowUI.Show();
-                        WindowUI.Closed += UserInterface_Closed;
-                    }
+                    WindowUI.Show();
+                    WindowUI.Closed += UserInterface_Closed;
                 }
             }
             catch { Dispose(); }
@@ -249,7 +262,7 @@ namespace Tanji.Services.Modules.Models
                         handledDataPacket = _module.DataAwaiters[identifier].Task.Result;
                         isContinuing = handledDataPacket.ReadBoolean(); // We can ignore this one.
                     }
-                    
+
                     int newPacketLength = handledDataPacket.ReadInt32();
                     byte[] newPacketData = handledDataPacket.ReadBytes(newPacketLength);
 
@@ -269,7 +282,7 @@ namespace Tanji.Services.Modules.Models
             {
                 _module.Node.SendPacketAsync(4, gameData.Source);
             }
-            
+
             public void Dispose()
             {
                 _module.Node.Dispose();

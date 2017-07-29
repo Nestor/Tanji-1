@@ -12,9 +12,22 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </UserControl.Resources>
     <Grid Width="{StaticResource PageWidth}" Height="{StaticResource PageHeight}">
-        <ListView Margin="0,0,0,25"
-                  ItemsSource="{Binding Modules}"
-                  SelectedItem="{Binding SelectedModule}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="3"/>
+            <RowDefinition Height="20"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="3"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <ListView ItemsSource="{Binding Modules}"
+                  BorderThickness="0"
+                  Grid.ColumnSpan="4"
+                  SelectedItem="{Binding SelectedModule}"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="Foreground" Value="Black"/>
@@ -53,13 +66,11 @@
             </ListView.View>
         </ListView>
         <Button Content="Uninstall"
-                Margin="273,298,105,0"
-                Width="100" Height="20"
+                Grid.Column="1" Grid.Row="2"
                 Style="{StaticResource TGButton}"
                 Command="{Binding UninstallCommand}"/>
         <Button Content="Install"
-                Margin="378,298,0,0"
-                Width="100" Height="20"
+                Grid.Column="3" Grid.Row="3"
                 Style="{StaticResource TGButton}"
                 Command="{Binding InstallCommand}"/>
     </Grid>

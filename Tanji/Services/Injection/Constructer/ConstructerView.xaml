@@ -48,8 +48,17 @@
         <local:ConstructerViewModel/>
     </UserControl.DataContext>
     <Grid Width="{StaticResource SubPageWidth}" Height="{StaticResource SubPageHeight}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="3"/>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="3"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="7"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
         <ListView ItemsSource="{Binding Chunks}"
-                  Margin="0,0,0,127"
                   BorderThickness="0"
                   ScrollViewer.VerticalScrollBarVisibility="Visible">
             <ListView.ItemTemplate>
@@ -63,10 +72,8 @@
                         </Grid.ColumnDefinitions>
                         <ctrls:LabelBox x:Name="box"
                                         TitleWidth="60"
-                                        IsReadOnly="True"
-                                        IsReadOnlyCaretVisible="True"
-                                        Text="{Binding Value, Mode=OneTime}"
-                                        Title="{Binding Type.Name, Mode=OneTime}"/>
+                                        Title="{Binding Code, Mode=OneTime}"
+                                        Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"/>
                         <Button Content=""
                                 Command="{Binding PushCommand}"
                                 Grid.Column="1" Margin="6,0,3,0"
@@ -94,18 +101,27 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
-        <ctrls:LabelBox Title="Value"
-                        Margin="0,163,175,102"
-                        Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"/>
-        <ctrls:LabelBox Title="ID"
-                        MaxLength="4"
-                        Margin="227,163,100,102"
-                        Text="{Binding Id, UpdateSourceTrigger=PropertyChanged}"/>
-        <ctrls:LabelBox Title="Quantity"
-                        MaxLength="3"
-                        Margin="302,163,0,102"
-                        Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"/>
-        <Grid Margin="0,188,0,52">
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.5*"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="90"/>
+            </Grid.ColumnDefinitions>
+            <ctrls:LabelBox Title="Value"
+                            Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"/>
+            <ctrls:LabelBox Title="ID"
+                            MaxLength="4"
+                            Grid.Column="2"
+                            Text="{Binding Id, UpdateSourceTrigger=PropertyChanged}"/>
+            <ctrls:LabelBox Title="Quantity"
+                            MaxLength="3"
+                            Grid.Column="4"
+                            Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"/>
+        </Grid>
+
+        <Grid Grid.Row="4">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="3"/>
@@ -118,7 +134,6 @@
                 <ColumnDefinition Width="3"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-
             <Button Content="Write Byte"
                     Command="{Binding WriteCommand}"
                     Style="{StaticResource TGButton}"
@@ -128,7 +143,6 @@
                     Command="{Binding WriteCommand}"
                     Style="{StaticResource TGButton}"
                     CommandParameter="{x:Type sys:Boolean}"/>
-
             <Button Content="Write Int32"
                     Grid.Column="2"
                     Command="{Binding WriteCommand}"
@@ -139,7 +153,6 @@
                     Command="{Binding WriteCommand}"
                     Style="{StaticResource TGButton}"
                     CommandParameter="{x:Type sys:UInt16}"/>
-
             <Button Content="Write String"
                     Grid.Column="4"
                     Command="{Binding WriteCommand}"
@@ -151,12 +164,12 @@
                     Style="{StaticResource TGButton}"
                     CommandParameter="{x:Type sys:Double}"/>
         </Grid>
-        <Separator Margin="0,233,0,45" Background="{StaticResource TGPrimaryBrush}"/>
-        <Grid Margin="0,240,0,0">
+        <Separator Grid.Row="5" Background="{StaticResource TGPrimaryBrush}"/>
+        <Grid Grid.Row="6">
             <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition Height="5"/>
-                <RowDefinition/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="3"/>
+                <RowDefinition Height="20"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
