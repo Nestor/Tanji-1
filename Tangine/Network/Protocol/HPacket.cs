@@ -75,6 +75,7 @@ namespace Tangine.Network.Protocol
             Id = resolver.GetId(data);
         }
 
+        #region Read Methods
         public int ReadInt32()
         {
             return ReadInt32(ref _position);
@@ -180,7 +181,9 @@ namespace Tangine.Network.Protocol
             }
             return chunk;
         }
+        #endregion
 
+        #region Write Methods
         public void Write(int value)
         {
             Write(value, _body.Count);
@@ -244,6 +247,84 @@ namespace Tangine.Network.Protocol
             _body.InsertRange(position, value);
             ResetCache();
         }
+        #endregion
+
+        #region Replace Methods
+        public void Replace(int value)
+        {
+            Replace(value, Position);
+        }
+        public void Replace(int value, int position)
+        {
+            byte[] data = Format.GetBytes(value);
+            Replace(data, position);
+        }
+
+        public void Replace(string value)
+        {
+            Replace(value, Position);
+        }
+        public void Replace(string value, int position)
+        {
+            byte[] data = Format.GetBytes(value);
+            int removeLength = ReadUInt16(position);
+
+            Replace(data, removeLength, position);
+        }
+
+        public void Replace(bool value)
+        {
+            Replace(value, Position);
+        }
+        public void Replace(bool value, int position)
+        {
+            byte[] data = Format.GetBytes(value);
+            Replace(data, position);
+        }
+
+        public void Replace(ushort value)
+        {
+            Replace(value, Position);
+        }
+        public void Replace(ushort value, int position)
+        {
+            byte[] data = Format.GetBytes(value);
+            Replace(data, position);
+        }
+
+        public void Replace(double value)
+        {
+            Replace(value, Position);
+        }
+        public void Replace(double value, int position)
+        {
+            byte[] data = Format.GetBytes(value);
+            Replace(data, position);
+        }
+
+        public void Replace(byte value)
+        {
+            Replace(value, Position);
+        }
+        public void Replace(byte value, int position)
+        {
+            _body[position] = value;
+        }
+
+        public void Replace(byte[] value)
+        {
+            Replace(value);
+        }
+        public void Replace(byte[] value, int position)
+        {
+            Replace(value, value.Length, position);
+        }
+        public void Replace(byte[] value, int length, int position)
+        {
+            _body.RemoveRange(position, length);
+            _body.InsertRange(position, value);
+        }
+        #endregion
 
         private void ResetCache()
         {
