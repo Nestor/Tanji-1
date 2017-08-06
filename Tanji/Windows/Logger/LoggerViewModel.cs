@@ -2,9 +2,8 @@
 using System.Drawing;
 using System.Windows;
 using System.Threading;
-using System.Windows.Forms;
 using System.ComponentModel;
-using System.Windows.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Windows.Forms.Integration;
 
@@ -20,11 +19,10 @@ namespace Tanji.Windows.Logger
 {
     public class LoggerViewModel : ObservableObject, IHaltable, IReceiver
     {
-        private DateTime? _firstIncomingStamp;
-        private readonly object _writeQueueLock;
-        private readonly object _processQueueLock;
+        private Task _dequeueTask;
+        private readonly object _enqueueLock;
+        private readonly object _dequeueLock;
         private readonly HPacketLogger _packetLogger;
-        private readonly List<HPacket> _lastIncomings;
         private readonly Queue<DataInterceptedEventArgs> _intercepted;
         private readonly Dictionary<int, MessageItem> _ignoredMessages;
         private readonly Action<List<Tuple<string, Color>>> _displayEntry;
@@ -225,10 +223,9 @@ namespace Tanji.Windows.Logger
         public LoggerViewModel()
         {
             _displayEntry = DisplayEntries;
-            _writeQueueLock = new object();
-            _processQueueLock = new object();
+            _enqueueLock = new object();
+            _dequeueLock = new object();
             _packetLogger = new HPacketLogger();
-            _lastIncomings = new List<HPacket>();
             _intercepted = new Queue<DataInterceptedEventArgs>();
             _ignoredMessages = new Dictionary<int, MessageItem>();
 
@@ -295,177 +292,180 @@ namespace Tanji.Windows.Logger
         public void HandleOutgoing(DataInterceptedEventArgs e) => PushToQueue(e);
         public void HandleIncoming(DataInterceptedEventArgs e) => PushToQueue(e);
 
-        private void ProcessQueue()
+        private void PopFromQueue()
         {
-            while (IsReceiving && _intercepted.Count > 0)
+            if (Monitor.TryEnter(_dequeueLock))
             {
-                DataInterceptedEventArgs args = _intercepted.Dequeue();
-                if (!IsLoggingAuthorized(args)) continue;
-
-                var entry = new List<Tuple<string, Color>>();
-                if (args.IsBlocked)
+                var entered = DateTime.Now;
+                while (!_packetLogger.IsHandleCreated)
                 {
-                    entry.Add(Tuple.Create("[Blocked]\r\n", FilterHighlight));
+                    Thread.Sleep(10);
                 }
-                if (!args.IsOriginal)
+                try
                 {
-                    entry.Add(Tuple.Create("[Replaced]\r\n", FilterHighlight));
-                }
-                if (IsDisplayingTimestamp)
-                {
-                    entry.Add(Tuple.Create($"[{args.Timestamp:M/d H:mm:ss}]\r\n", DetailHighlight));
-                }
-
-                MessageItem message = GetMessage(args);
-                if (IsDisplayingHash && message != null && !string.IsNullOrWhiteSpace(message.Hash))
-                {
-                    entry.Add(Tuple.Create($"[{message.Hash}]\r\n", DetailHighlight));
-                }
-
-                if (IsDisplayingHexadecimal)
-                {
-                    string hex = BitConverter.ToString(args.Packet.ToBytes());
-                    entry.Add(Tuple.Create($"[{hex.Replace("-", string.Empty)}]\r\n", DetailHighlight));
-                }
-
-                string arrow = "->";
-                string title = "Outgoing";
-                Color entryHighlight = OutgoingHighlight;
-                if (!args.IsOutgoing)
-                {
-                    arrow = "<-";
-                    title = "Incoming";
-                    entryHighlight = IncomingHighlight;
-                }
-
-                entry.Add(Tuple.Create(title + "[", entryHighlight));
-                entry.Add(Tuple.Create(args.Packet.Id.ToString(), DetailHighlight));
-
-                if (message != null)
-                {
-                    if (IsDisplayingMessageName)
+                    var start = DateTime.Now;
+                    var entries = new List<Tuple<string, Color>>();
+                    while (IsReceiving)
                     {
-                        entry.Add(Tuple.Create(", ", entryHighlight));
-                        entry.Add(Tuple.Create(message.Class.QName.Name, DetailHighlight));
-                    }
-                    if (IsDisplayingParserName && message.Parser != null)
-                    {
-                        entry.Add(Tuple.Create(", ", entryHighlight));
-                        entry.Add(Tuple.Create(message.Parser.QName.Name, DetailHighlight));
-                    }
-                }
-                entry.Add(Tuple.Create("]", entryHighlight));
-                entry.Add(Tuple.Create($" {arrow} ", DetailHighlight));
-                entry.Add(Tuple.Create($"{args.Packet}\r\n", entryHighlight));
-
-                if (IsDisplayingStructure && message?.Structure?.Length >= 0)
-                {
-                    int position = 0;
-                    HPacket packet = args.Packet;
-                    string structure = ("{id:" + packet.Id + "}");
-                    foreach (string valueType in message.Structure)
-                    {
-                        switch (valueType.ToLower())
+                        while (_intercepted.Count == 0)
                         {
-                            case "int":
-                            structure += ("{i:" + packet.ReadInt32(ref position) + "}");
-                            break;
+                            Thread.Sleep(100);
+                        }
 
-                            case "string":
-                            structure += ("{s:" + packet.ReadUTF8(ref position) + "}");
-                            break;
+                        AddEntry(entries);
+                        if ((DateTime.Now - start).TotalMilliseconds >= 500)
+                        {
+                            _packetLogger.Invoke(_displayEntry, entries);
+                            entries.Clear();
 
-                            case "double":
-                            structure += ("{d:" + packet.ReadDouble(ref position) + "}");
-                            break;
-
-                            case "byte":
-                            structure += ("{b:" + packet.ReadByte(ref position) + "}");
-                            break;
-
-                            case "boolean":
-                            structure += ("{b:" + packet.ReadBoolean(ref position) + "}");
-                            break;
+                            App.DoEvents();
+                            Thread.Sleep(10);
                         }
                     }
-                    if (packet.GetReadableBytes(position) == 0)
-                    {
-                        entry.Add(Tuple.Create(structure + "\r\n", StructureHighlight));
-                    }
                 }
-                entry.Add(Tuple.Create("--------------------\r\n", DetailHighlight));
-
-                while (!_packetLogger.IsHandleCreated) ;
-                if (!IsReceiving) return;
-
-                Dispatcher.BeginInvoke((MethodInvoker)(() => _packetLogger.Invoke(_displayEntry, entry)));
+                finally
+                {
+                    Monitor.Exit(_dequeueLock);
+                    App.DoEvents();
+                }
             }
         }
         private void PushToQueue(DataInterceptedEventArgs args)
         {
-            lock (_writeQueueLock)
+            lock (_enqueueLock)
             {
                 if (IsLoggingAuthorized(args))
                 {
                     _intercepted.Enqueue(args);
-                    //if (!args.IsOutgoing)
-                    //{
-                    //    var now = DateTime.Now;
-                    //    if (_firstIncomingStamp == null)
-                    //    {
-                    //        _firstIncomingStamp = now;
-                    //    }
-                    //    else if ((now - (DateTime)_firstIncomingStamp).Seconds >= 5)
-                    //    {
-                    //        var duplicates = _lastIncomings.GroupBy(p => p.ToString())
-                    //            .Where(g => g.Count() >= 5)
-                    //            .Select(g => g.Key);
-
-                    //        if (duplicates.Count() > 0)
-                    //        {
-                    //            int id = (args.Packet.Id + ushort.MaxValue);
-                    //            _ignoredMessages.Add(id, App.Master.Game.InMessages[args.Packet.Id]);
-
-                    //            _lastIncomings.Clear();
-                    //            _firstIncomingStamp = null;
-                    //        }
-                    //    }
-                    //    _lastIncomings.Add(args.Packet);
-                    //}
-                }
-            }
-            if (IsReceiving && Monitor.TryEnter(_processQueueLock))
-            {
-                try
-                {
-                    while (IsReceiving && _intercepted.Count > 0)
+                    if (_dequeueTask?.IsCompleted ?? true)
                     {
-                        ProcessQueue();
+                        _dequeueTask = Task.Factory.StartNew(
+                            PopFromQueue, TaskCreationOptions.LongRunning);
                     }
                 }
-                finally { Monitor.Exit(_processQueueLock); }
             }
         }
 
-        private void DisplayEntries(List<Tuple<string, Color>> entry)
+        private void AddEntry(List<Tuple<string, Color>> entries)
         {
-            foreach (Tuple<string, Color> chunk in entry)
+            DataInterceptedEventArgs args = _intercepted.Dequeue();
+            if (!IsLoggingAuthorized(args)) return;
+
+            if (args.IsBlocked)
+            {
+                entries.Add(Tuple.Create("[Blocked]\r\n", FilterHighlight));
+            }
+            if (!args.IsOriginal)
+            {
+                entries.Add(Tuple.Create("[Replaced]\r\n", FilterHighlight));
+            }
+            if (IsDisplayingTimestamp)
+            {
+                entries.Add(Tuple.Create($"[{args.Timestamp:M/d H:mm:ss}]\r\n", DetailHighlight));
+            }
+
+            MessageItem message = GetMessage(args);
+            if (IsDisplayingHash && message != null && !string.IsNullOrWhiteSpace(message.Hash))
+            {
+                entries.Add(Tuple.Create($"[{message.Hash}]\r\n", DetailHighlight));
+            }
+
+            if (IsDisplayingHexadecimal)
+            {
+                string hex = BitConverter.ToString(args.Packet.ToBytes());
+                entries.Add(Tuple.Create($"[{hex.Replace("-", string.Empty)}]\r\n", DetailHighlight));
+            }
+
+            string arrow = "->";
+            string title = "Outgoing";
+            Color entryHighlight = OutgoingHighlight;
+            if (!args.IsOutgoing)
+            {
+                arrow = "<-";
+                title = "Incoming";
+                entryHighlight = IncomingHighlight;
+            }
+
+            entries.Add(Tuple.Create(title + "[", entryHighlight));
+            entries.Add(Tuple.Create(args.Packet.Id.ToString(), DetailHighlight));
+
+            if (message != null)
+            {
+                if (IsDisplayingMessageName)
+                {
+                    entries.Add(Tuple.Create(", ", entryHighlight));
+                    entries.Add(Tuple.Create(message.Class.QName.Name, DetailHighlight));
+                }
+                if (IsDisplayingParserName && message.Parser != null)
+                {
+                    entries.Add(Tuple.Create(", ", entryHighlight));
+                    entries.Add(Tuple.Create(message.Parser.QName.Name, DetailHighlight));
+                }
+            }
+            entries.Add(Tuple.Create("]", entryHighlight));
+            entries.Add(Tuple.Create($" {arrow} ", DetailHighlight));
+            entries.Add(Tuple.Create($"{args.Packet}\r\n", entryHighlight));
+
+            if (IsDisplayingStructure && message?.Structure?.Length >= 0)
+            {
+                int position = 0;
+                HPacket packet = args.Packet;
+                string structure = ("{id:" + packet.Id + "}");
+                foreach (string valueType in message.Structure)
+                {
+                    switch (valueType.ToLower())
+                    {
+                        case "int":
+                        structure += ("{i:" + packet.ReadInt32(ref position) + "}");
+                        break;
+
+                        case "string":
+                        structure += ("{s:" + packet.ReadUTF8(ref position) + "}");
+                        break;
+
+                        case "double":
+                        structure += ("{d:" + packet.ReadDouble(ref position) + "}");
+                        break;
+
+                        case "byte":
+                        structure += ("{b:" + packet.ReadByte(ref position) + "}");
+                        break;
+
+                        case "boolean":
+                        structure += ("{b:" + packet.ReadBoolean(ref position) + "}");
+                        break;
+                    }
+                }
+                if (packet.GetReadableBytes(position) == 0)
+                {
+                    entries.Add(Tuple.Create(structure + "\r\n", StructureHighlight));
+                }
+            }
+            entries.Add(Tuple.Create("--------------------\r\n", DetailHighlight));
+        }
+        private void DisplayEntries(List<Tuple<string, Color>> entries)
+        {
+            if (!IsReceiving) return;
+            foreach (Tuple<string, Color> entry in entries)
             {
                 _packetLogger.LoggerTxt.SelectionStart = _packetLogger.LoggerTxt.TextLength;
                 _packetLogger.LoggerTxt.SelectionLength = 0;
 
-                _packetLogger.LoggerTxt.SelectionColor = chunk.Item2;
-                _packetLogger.LoggerTxt.AppendText(chunk.Item1);
+                _packetLogger.LoggerTxt.SelectionColor = entry.Item2;
+                if (_packetLogger.LoggerTxt.Focused)
+                {
+                    PacketLoggerHost.Focus();
+                }
+                _packetLogger.LoggerTxt.AppendText(entry.Item1);
             }
         }
+
         private MessageItem GetMessage(DataInterceptedEventArgs args)
         {
             IDictionary<ushort, MessageItem> messages = (args.IsOutgoing ?
                 App.Master.Game.OutMessages : App.Master.Game.InMessages);
 
-            MessageItem message = null;
-            messages.TryGetValue(args.Packet.Id, out message);
-
+            messages.TryGetValue(args.Packet.Id, out MessageItem message);
             return message;
         }
         private bool IsLoggingAuthorized(DataInterceptedEventArgs args)
