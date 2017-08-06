@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Threading;
 using System.Collections.Generic;
 
 using Tanji.Network;
@@ -11,6 +12,8 @@ using Tanji.Services.Connection;
 using Tangine.Habbo;
 using Tangine.Modules;
 using Tangine.Network;
+
+using Eavesdrop;
 
 namespace Tanji
 {
@@ -36,6 +39,8 @@ namespace Tanji
             _haltables = new List<IHaltable>();
             _synchronizers = new List<ISynchronizer>();
             _receivers = new SortedList<int, IReceiver>();
+
+            DispatcherUnhandledException += UnhandledException;
 
             GameData = new HGameData();
             Connection = new HConnection();
@@ -121,7 +126,20 @@ namespace Tanji
             Master = this;
             base.OnStartup(e);
         }
+        private void UnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                Display(e.Exception);
+                Eavesdropper.Terminate();
+            }
+        }
 
+        public static void DoEvents()
+        {
+            Current.Dispatcher.Invoke(
+                DispatcherPriority.Background, new Action(delegate { }));
+        }
         public static void Display(Exception exception, string header = null)
         {
             string messsage = header;

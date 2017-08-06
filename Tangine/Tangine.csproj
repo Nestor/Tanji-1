@@ -57,15 +57,16 @@
     <Compile Include="Crypto\PKCSPadding.cs" />
     <Compile Include="Habbo\HEntity.cs" />
     <Compile Include="Habbo\HEntityAction.cs" />
+    <Compile Include="Habbo\HExtensions.cs" />
     <Compile Include="Habbo\HFurniture.cs" />
+    <Compile Include="Habbo\HData.cs" />
     <Compile Include="Habbo\HItem.cs" />
     <Compile Include="Habbo\HMap.cs" />
     <Compile Include="Habbo\HPoint.cs" />
-    <Compile Include="Habbo\HStuffData.cs" />
-    <Compile Include="Habbo\IHEntity.cs" />
     <Compile Include="Modules\Attributes\AuthorAttribute.cs" />
     <Compile Include="Modules\Attributes\DataCaptureAttribute.cs" />
     <Compile Include="Modules\Attributes\InCaptureAttribute.cs" />
+    <Compile Include="Modules\Attributes\MessageIdAttribute.cs" />
     <Compile Include="Modules\Attributes\ModuleAttribute.cs" />
     <Compile Include="Habbo\Enums\HAction.cs" />
     <Compile Include="Habbo\Enums\HBan.cs" />
@@ -77,7 +78,6 @@
     <Compile Include="Habbo\Enums\HHotel.cs" />
     <Compile Include="Habbo\Enums\HModel.cs" />
     <Compile Include="Habbo\Enums\HSign.cs" />
-    <Compile Include="Habbo\Enums\HSpeech.cs" />
     <Compile Include="Habbo\Enums\HStance.cs" />
     <Compile Include="Habbo\Enums\HTheme.cs" />
     <Compile Include="Habbo\HGame.cs" />
