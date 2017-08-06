@@ -11,7 +11,7 @@ namespace Tangine.Network
 {
     public class HNode : IDisposable
     {
-        private static readonly Dictionary<int, Socket> _listeners;
+        private static readonly Dictionary<int, TcpListener> _listeners;
 
         public bool IsConnected
         {
@@ -31,7 +31,7 @@ namespace Tangine.Network
 
         static HNode()
         {
-            _listeners = new Dictionary<int, Socket>();
+            _listeners = new Dictionary<int, TcpListener>();
         }
         public HNode()
             : this(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
@@ -222,41 +222,36 @@ namespace Tangine.Network
 
         public static void StopListeners(int? port = null)
         {
-            foreach (Socket listener in _listeners.Values)
+            foreach (TcpListener listener in _listeners.Values)
             {
-                if (port != null && port != ((IPEndPoint)listener.LocalEndPoint).Port) continue;
-                listener.Close();
+                if (port != null)
+                {
+                    if (port != ((IPEndPoint)listener.LocalEndpoint).Port) continue;
+                }
+                listener.Stop();
             }
-            _listeners.Clear();
         }
         public static async Task<HNode> AcceptAsync(int port)
         {
-            Socket listener = null;
-            if (_listeners.TryGetValue(port, out listener))
+            TcpListener listener = null;
+            if (!_listeners.TryGetValue(port, out listener))
             {
-                listener.Close();
+                listener = new TcpListener(IPAddress.Parse("127.0.0.1"), port);
+                _listeners.Add(port, listener);
             }
 
             try
             {
-                listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                _listeners[port] = listener;
-
-                listener.Bind(new IPEndPoint(IPAddress.Any, port));
-                listener.Listen(0);
-
-                IAsyncResult result = listener.BeginAccept(null, null);
-                Socket client = await Task.Factory.FromAsync(result, listener.EndAccept).ConfigureAwait(false);
-
+                listener.Start();
+                Socket client = await listener.AcceptSocketAsync().ConfigureAwait(false);
                 return new HNode(client);
             }
-            catch { return null; }
             finally
             {
-                if (_listeners.ContainsValue(listener))
+                listener.Stop();
+                if (_listeners.ContainsKey(port))
                 {
                     _listeners.Remove(port);
-                    listener.Close();
                 }
             }
         }
