@@ -2,11 +2,11 @@
 
 namespace Tangine.Habbo
 {
-    public static class HStuffData
+    public abstract class HData
     {
-        public static void ReadStuffData(int category, HPacket packet)
+        protected void ReadData(HPacket packet, int category)
         {
-            switch (category & 255)
+            switch (category & 0xFF)
             {
                 case 0:
                 {
@@ -72,6 +72,11 @@ namespace Tangine.Habbo
                     packet.ReadInt32();
                     break;
                 }
+            }
+            if (((category & 0xFF00) & 0x100) > 0)
+            {
+                packet.ReadInt32();
+                packet.ReadInt32();
             }
         }
     }
