@@ -7,7 +7,7 @@
         public double Z { get; set; }
 
         public HPoint(int x, int y)
-            : this(x, y, 0.0)
+            : this(x, y, 0)
         { }
         public HPoint(int x, int y, double z)
         {
