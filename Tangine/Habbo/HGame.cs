@@ -1221,7 +1221,11 @@ namespace Tangine.Habbo
 
         public IEnumerable<ushort> GetMessageIds(string hash)
         {
-            return Messages[hash].Select(m => m.Id);
+            if (Messages.TryGetValue(hash, out List<MessageItem> messages))
+            {
+                return messages.Select(m => m.Id);
+            }
+            return Enumerable.Empty<ushort>();
         }
 
         private void LoadMessages()
