@@ -65,7 +65,7 @@
                     IsEnabled="{Binding IsConnecting, Converter={c:InverseBooleanConverter}}" />
             <Separator Grid.Row="1"
                        Grid.ColumnSpan="5"
-                       Background="{StaticResource TGPrimaryBrush}" />
+                       Background="{StaticResource PrimaryBrush}" />
             <Label Content="{Binding Status}"
                    Grid.Row="2"
                    Style="{StaticResource TGLabel}"

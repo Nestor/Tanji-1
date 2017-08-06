@@ -33,7 +33,7 @@
                 <filter:FilterView/>
             </TabItem>
         </TabControl>
-        <Separator Grid.Row="1" Background="{StaticResource TGPrimaryBrush}"/>
+        <Separator Grid.Row="1" Background="{StaticResource PrimaryBrush}"/>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2.5*"/>

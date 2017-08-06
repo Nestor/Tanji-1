@@ -26,7 +26,7 @@
                                 <Trigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard Storyboard.TargetProperty="Foreground.Color">
-                                            <ColorAnimation Duration="0:0:0.2" To="{StaticResource TGPrimaryLightColor}"/>
+                                            <ColorAnimation Duration="0:0:0.2" To="{StaticResource PrimaryLightColor}"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.EnterActions>
@@ -164,7 +164,7 @@
                     Style="{StaticResource TGButton}"
                     CommandParameter="{x:Type sys:Double}"/>
         </Grid>
-        <Separator Grid.Row="5" Background="{StaticResource TGPrimaryBrush}"/>
+        <Separator Grid.Row="5" Background="{StaticResource PrimaryBrush}"/>
         <Grid Grid.Row="6">
             <Grid.RowDefinitions>
                 <RowDefinition Height="20"/>
