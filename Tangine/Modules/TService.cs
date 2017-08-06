@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using System.ComponentModel;
@@ -14,15 +15,22 @@ namespace Tangine.Modules
 {
     public class TService : IModule
     {
+        private readonly TService _parent;
         private readonly IModule _container;
-        private readonly List<DataCaptureAttribute> _captureAtts;
-        private readonly Dictionary<ushort, DataCaptureAttribute> _outCallbacks, _inCallbacks;
-        private const BindingFlags CALLBACK_FLAGS = (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
+        private readonly List<DataCaptureAttribute> _unknownDataAttributes;
+        private readonly Dictionary<ushort, List<DataCaptureAttribute>> _outDataAttributes, _inDataAttributes;
+        private const BindingFlags TYPE_FLAGS = (BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
 
         public const int REMOTE_MODULE_PORT = 8055;
 
-        public IInstaller Installer { get; set; }
         public virtual bool IsStandalone { get; }
+
+        private IInstaller _installer;
+        public virtual IInstaller Installer
+        {
+            get => (_parent?.Installer ?? _installer);
+            set => _installer = value;
+        }
 
         public HGame Game => Installer.Game;
         public HGameData GameData => Installer.GameData;
@@ -31,91 +39,125 @@ namespace Tangine.Modules
         protected TService()
             : this(null)
         { }
-        internal TService(IModule container)
+        protected TService(TService parent)
+            : this(null, parent)
+        { }
+        protected internal TService(IModule container)
+            : this(container, null)
+        { }
+        private TService(IModule container, TService parent)
         {
-            _inCallbacks = new Dictionary<ushort, DataCaptureAttribute>();
-            _outCallbacks = new Dictionary<ushort, DataCaptureAttribute>();
-
+            _parent = parent;
             _container = (container ?? this);
-            _captureAtts = new List<DataCaptureAttribute>();
+            _unknownDataAttributes = (parent?._unknownDataAttributes ?? new List<DataCaptureAttribute>());
+            _inDataAttributes = (parent?._inDataAttributes ?? new Dictionary<ushort, List<DataCaptureAttribute>>());
+            _outDataAttributes = (parent?._outDataAttributes ?? new Dictionary<ushort, List<DataCaptureAttribute>>());
 
             Installer = _container.Installer;
-            IsStandalone = (_container.IsStandalone && _container.Installer == null);
-            if (LicenseManager.UsageMode == LicenseUsageMode.Runtime)
+            IsStandalone = (parent != null ? false : _container.IsStandalone);
+            if (LicenseManager.UsageMode != LicenseUsageMode.Runtime) return;
+
+            foreach (MethodInfo method in GetTypes(_container.GetType()).SelectMany(t => t.GetMethods(TYPE_FLAGS)))
             {
-                foreach (MethodInfo callback in _container.GetType().GetMethods((CALLBACK_FLAGS)))
+                foreach (var dataCaptureAtt in method.GetCustomAttributes<DataCaptureAttribute>())
                 {
-                    var dataCaptureAtt = callback.GetCustomAttribute<DataCaptureAttribute>();
-                    if (dataCaptureAtt != null)
+                    if (dataCaptureAtt == null) continue;
+
+                    dataCaptureAtt.Method = method;
+                    if (_unknownDataAttributes.Any(dca => dca.Equals(dataCaptureAtt))) continue;
+
+                    dataCaptureAtt.Target = _container;
+                    if (dataCaptureAtt.Id != null)
                     {
-                        dataCaptureAtt.Method = callback;
-                        if (dataCaptureAtt.Id != null)
-                        {
-                            (dataCaptureAtt.IsOutgoing ? _outCallbacks : _inCallbacks)
-                                .Add((ushort)dataCaptureAtt.Id, dataCaptureAtt);
-                        }
-                        else _captureAtts.Add(dataCaptureAtt);
+                        AddCallback(dataCaptureAtt, (ushort)dataCaptureAtt.Id);
                     }
+                    else _unknownDataAttributes.Add(dataCaptureAtt);
                 }
-                if (IsStandalone)
+            }
+
+            if (!IsStandalone) return;
+            while (true)
+            {
+                HNode installerNode = HNode.ConnectNewAsync("127.0.0.1", REMOTE_MODULE_PORT).Result;
+                if (installerNode != null)
                 {
-                    while (true)
-                    {
-                        HNode installerNode = HNode.ConnectNewAsync("127.0.0.1", REMOTE_MODULE_PORT).Result;
-                        if (installerNode != null)
-                        {
-                            installerNode.InFormat = HFormat.EvaWire;
-                            installerNode.OutFormat = HFormat.EvaWire;
+                    installerNode.InFormat = HFormat.EvaWire;
+                    installerNode.OutFormat = HFormat.EvaWire;
 
-                            // TODO: Gather info about current assembly.
-                            var infoPacketOut = new EvaWirePacket(0);
-                            infoPacketOut.Write("1.0.0.0");
-                            infoPacketOut.Write("Remote Module Name");
-                            infoPacketOut.Write("Remote Module Description");
-                            infoPacketOut.Write(0);
+                    // TODO: Gather info about current assembly.
+                    var infoPacketOut = new EvaWirePacket(0);
+                    infoPacketOut.Write("1.0.0.0");
+                    infoPacketOut.Write("Remote Module Name");
+                    infoPacketOut.Write("Remote Module Description");
+                    infoPacketOut.Write(0);
 
-                            installerNode.SendPacketAsync(infoPacketOut).Wait();
-                            Installer = _container.Installer = new DummyInstaller(_container, installerNode);
-                            break;
-                        }
-                        else if (MessageBox.Show("Failed to connect to the remote installer, would you like to try again?",
-                            "Tangine - Alert!", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-                        {
-                            Environment.Exit(0);
-                        }
-                    }
+                    installerNode.SendPacketAsync(infoPacketOut).Wait();
+                    Installer = _container.Installer = new DummyInstaller(_container, installerNode);
+                    break;
+                }
+                else if (MessageBox.Show("Failed to connect to the remote installer, would you like to try again?",
+                    "Tangine - Alert!", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                {
+                    Environment.Exit(0);
                 }
             }
         }
 
         public virtual void Synchronize(HGame game)
         {
-            foreach (DataCaptureAttribute captureAtt in _captureAtts)
+            foreach (PropertyInfo property in GetTypes(_container.GetType()).SelectMany(t => t.GetProperties(TYPE_FLAGS)))
             {
-                if (string.IsNullOrWhiteSpace(captureAtt.Hash)) continue;
+                var messageIdAtt = property.GetCustomAttribute<MessageIdAttribute>();
+                if (string.IsNullOrWhiteSpace(messageIdAtt?.Hash)) continue;
 
-                List<MessageItem> messages = null;
-                if (game.Messages.TryGetValue(captureAtt.Hash, out messages))
-                {
-                    (captureAtt.IsOutgoing ? _outCallbacks : _inCallbacks)
-                        .Add(messages[0].Id, captureAtt);
-                }
+                ushort id = game.GetMessageIds(messageIdAtt.Hash).First();
+                property.SetValue(_container, id);
+            }
+
+            foreach (DataCaptureAttribute dataCaptureAtt in _unknownDataAttributes)
+            {
+                if (string.IsNullOrWhiteSpace(dataCaptureAtt.Hash)) continue;
+
+                ushort id = game.GetMessageIds(dataCaptureAtt.Hash).First();
+                AddCallback(dataCaptureAtt, id);
             }
         }
         public virtual void Synchronize(HGameData gameData)
         { }
 
-        public virtual void HandleIncoming(DataInterceptedEventArgs e) => HandleData(_inCallbacks, e);
-        public virtual void HandleOutgoing(DataInterceptedEventArgs e) => HandleData(_outCallbacks, e);
-        private void HandleData(IDictionary<ushort, DataCaptureAttribute> callbacks, DataInterceptedEventArgs e)
+        public virtual void HandleIncoming(DataInterceptedEventArgs e) => HandleData(_inDataAttributes, e);
+        public virtual void HandleOutgoing(DataInterceptedEventArgs e) => HandleData(_outDataAttributes, e);
+        private void HandleData(IDictionary<ushort, List<DataCaptureAttribute>> callbacks, DataInterceptedEventArgs e)
         {
-            if (callbacks.Count == 0) return;
-
-            DataCaptureAttribute captureAtt = null;
-            if (callbacks.TryGetValue(e.Packet.Id, out captureAtt))
+            if (callbacks.TryGetValue(e.Packet.Id, out List<DataCaptureAttribute> attributes))
             {
-                captureAtt.Invoke(_container, e);
+                foreach (DataCaptureAttribute attribute in attributes)
+                {
+                    e.Packet.Position = 0;
+                    attribute.Invoke(e);
+                }
             }
+        }
+
+        private IEnumerable<Type> GetTypes(Type container)
+        {
+            do
+            {
+                yield return container;
+            }
+            while ((container = container.BaseType) != null);
+        }
+        private void AddCallback(DataCaptureAttribute attribute, ushort id)
+        {
+            Dictionary<ushort, List<DataCaptureAttribute>> callbacks =
+                (attribute.IsOutgoing ? _outDataAttributes : _inDataAttributes);
+
+            if (!callbacks.TryGetValue(id, out List<DataCaptureAttribute> attributes))
+            {
+                attributes = new List<DataCaptureAttribute>();
+                callbacks.Add(id, attributes);
+            }
+            attributes.Add(attribute);
         }
 
         public virtual void Dispose()
