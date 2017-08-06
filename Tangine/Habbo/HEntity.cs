@@ -1,112 +1,103 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 
 using Tangine.Network.Protocol;
 
 namespace Tangine.Habbo
 {
-    public class HEntity : IHEntity
+    public class HEntity : HData
     {
         public int Id { get; set; }
         public int Index { get; set; }
+        public HPoint Tile { get; set; }
         public string Name { get; set; }
         public string Motto { get; set; }
+        public HGender Gender { get; set; }
         public string FigureId { get; set; }
         public string FavoriteGroup { get; set; }
+        public HEntityAction LastUpdate { get; private set; }
 
-        public HPoint Tile { get; set; }
-        public HGender Gender { get; set; }
-
-        public HEntity(int id, int index, string name, HPoint tile,
-            string motto, HGender gender, string figureId, string favoriteGroup)
+        public HEntity(HPacket packet)
         {
-            Id = id;
-            Index = index;
-            Name = name;
-            Tile = tile;
-            Motto = motto;
-            Gender = gender;
-            FigureId = figureId;
-            FavoriteGroup = favoriteGroup;
+            Id = packet.ReadInt32();
+            Name = packet.ReadUTF8();
+            Motto = packet.ReadUTF8();
+            FigureId = packet.ReadUTF8();
+            Index = packet.ReadInt32();
+
+            Tile = new HPoint(packet.ReadInt32(), packet.ReadInt32(),
+                double.Parse(packet.ReadUTF8(), CultureInfo.InvariantCulture));
+
+            packet.ReadInt32();
+            int type = packet.ReadInt32();
+
+            switch (type)
+            {
+                case 1:
+                {
+                    Gender = (HGender)packet.ReadUTF8().ToLower()[0];
+                    packet.ReadInt32();
+                    packet.ReadInt32();
+                    FavoriteGroup = packet.ReadUTF8();
+                    packet.ReadUTF8();
+                    packet.ReadInt32();
+                    packet.ReadBoolean();
+                    break;
+                }
+                case 2:
+                {
+                    packet.ReadInt32();
+                    packet.ReadInt32();
+                    packet.ReadUTF8();
+                    packet.ReadInt32();
+                    packet.ReadBoolean();
+                    packet.ReadBoolean();
+                    packet.ReadBoolean();
+                    packet.ReadBoolean();
+                    packet.ReadBoolean();
+                    packet.ReadBoolean();
+                    packet.ReadInt32();
+                    packet.ReadUTF8();
+                    break;
+                }
+                case 4:
+                {
+                    packet.ReadUTF8();
+                    packet.ReadInt32();
+                    packet.ReadUTF8();
+                    for (int j = packet.ReadInt32(); j > 0; j--)
+                    {
+                        packet.ReadUInt16();
+                    }
+                    break;
+                }
+            }
         }
 
-        public static IReadOnlyList<HEntity> Parse(HPacket packet)
+        public void Update(HEntityAction action)
+        {
+            if (!TryUpdate(action))
+            {
+                throw new ArgumentException("Entity index does not match.", nameof(action));
+            }
+        }
+        public bool TryUpdate(HEntityAction action)
+        {
+            if (Index != action.Index) return false;
+
+            Tile = action.Tile;
+            LastUpdate = action;
+            return true;
+        }
+
+        public static IEnumerable<HEntity> Parse(HPacket packet)
         {
             int entityCount = packet.ReadInt32();
-            var entityList = new List<HEntity>(entityCount);
-
-            for (int i = 0; i < entityList.Capacity; i++)
+            for (int i = 0; i < entityCount; i++)
             {
-                int id = packet.ReadInt32();
-                string name = packet.ReadUTF8();
-                string motto = packet.ReadUTF8();
-                string figureId = packet.ReadUTF8();
-                int index = packet.ReadInt32();
-                int x = packet.ReadInt32();
-                int y = packet.ReadInt32();
-                var z = double.Parse(packet.ReadUTF8(), CultureInfo.InvariantCulture);
-
-                packet.ReadInt32();
-                int type = packet.ReadInt32();
-
-                var gender = HGender.Unisex;
-                string favoriteGroup = string.Empty;
-                #region Switch: type
-                switch (type)
-                {
-                    case 1:
-                    {
-                        // TODO: gender = SKore.ToGender(packet.ReadUTF8());
-                        packet.ReadInt32();
-                        packet.ReadInt32();
-                        favoriteGroup = packet.ReadUTF8();
-                        packet.ReadUTF8();
-                        packet.ReadInt32();
-                        packet.ReadBoolean();
-
-                        break;
-                    }
-                    case 2:
-                    {
-                        packet.ReadInt32();
-                        packet.ReadInt32();
-                        packet.ReadUTF8();
-                        packet.ReadInt32();
-                        packet.ReadBoolean();
-                        packet.ReadBoolean();
-                        packet.ReadBoolean();
-                        packet.ReadBoolean();
-                        packet.ReadBoolean();
-                        packet.ReadBoolean();
-                        packet.ReadInt32();
-                        packet.ReadUTF8();
-                        break;
-                    }
-                    case 4:
-                    {
-                        packet.ReadUTF8();
-                        packet.ReadInt32();
-                        packet.ReadUTF8();
-
-                        for (int j = packet.ReadInt32(); j > 0; j--)
-                            packet.ReadUInt16();
-
-                        break;
-                    }
-                }
-                #endregion
-
-                var entity = new HEntity(id, index, name, new HPoint(x, y, z), motto, gender, figureId, favoriteGroup);
-                entityList.Add(entity);
+                yield return new HEntity(packet);
             }
-            return entityList;
-        }
-
-        public override string ToString()
-        {
-            return $"{nameof(Id)}: {Id}, {nameof(Index)}: {Index}, {nameof(Name)}: {Name}, " +
-                $"{nameof(Tile)}: {Tile}, {nameof(Motto)}: {Motto}, {nameof(Gender)}: {Gender}, " +
-                $"{nameof(FigureId)}: {FigureId}, {nameof(FavoriteGroup)}: {FavoriteGroup}";
         }
     }
 }
