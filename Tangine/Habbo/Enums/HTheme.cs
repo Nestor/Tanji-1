@@ -20,7 +20,6 @@
         /// <summary>
         /// Represents the yellow speech bubble.
         /// </summary>
-        /// 
         Yellow = 5,
         /// <summary>
         /// Represents the green speech bubble.
