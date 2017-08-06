@@ -33,7 +33,7 @@
             // 
             // LoggerTxt
             // 
-            this.LoggerTxt.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(15)))), ((int)(((byte)(15)))), ((int)(((byte)(15)))));
+            this.LoggerTxt.BackColor = System.Drawing.Color.Black;
             this.LoggerTxt.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.LoggerTxt.DetectUrls = false;
             this.LoggerTxt.Dock = System.Windows.Forms.DockStyle.Fill;
