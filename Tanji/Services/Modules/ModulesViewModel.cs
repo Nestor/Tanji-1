@@ -72,13 +72,15 @@ namespace Tanji.Services.Modules
             {
                 ModulesDirectory = Directory.CreateDirectory("Installed Modules");
                 DependenciesDirectory = ModulesDirectory.CreateSubdirectory("Dependencies");
-
                 LoadModules();
+                try
+                {
+                    var listener = new TcpListener(IPAddress.Any, TService.REMOTE_MODULE_PORT);
+                    listener.Start();
 
-                var listener = new TcpListener(IPAddress.Any, TService.REMOTE_MODULE_PORT);
-                listener.Start();
-
-                Task captureModulesTask = CaptureModulesAsync(listener);
+                    Task captureModulesTask = CaptureModulesAsync(listener);
+                }
+                catch (Exception ex) { App.Display(ex, $"Failed to start module listener on port '{TService.REMOTE_MODULE_PORT}'."); }
             }
         }
 
